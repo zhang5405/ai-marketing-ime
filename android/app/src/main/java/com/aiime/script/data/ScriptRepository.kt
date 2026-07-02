@@ -47,6 +47,8 @@ class ScriptRepository(private val dao: ScriptDao) {
 
     suspend fun insert(script: ScriptEntity): Long = dao.insert(script)
 
+    suspend fun insertAll(scripts: List<ScriptEntity>) = dao.insertAll(scripts)
+
     suspend fun update(script: ScriptEntity) = dao.update(script)
 
     suspend fun incrementUsage(id: Long) = dao.incrementUsage(id)

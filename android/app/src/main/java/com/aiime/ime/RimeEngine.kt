@@ -1,25 +1,22 @@
 package com.aiime.ime
 
 import android.content.Context
+import com.osfans.trime.core.RimeJni
+import com.osfans.trime.core.RimeProto
 import java.io.File
+import java.io.FileOutputStream
 
 /**
- * RIME 输入法引擎桥接类
+ * RIME 输入法引擎桥接 — 基于 librime_jni.so (从 Trime APK 提取)
  *
- * 基于 librime-android (BSD) 的 JNI 桥接，
- * 负责：
- * 1. 初始化 RIME 引擎（加载拼音方案 + 词库）
- * 2. processInput(拼音串) → 候选词列表
- * 3. 选词确认
- * 4. 清理状态
+ * 核心流程：
+ * 1. initialize() — 复制 RIME 配置/词库到私有目录 → 启动引擎
+ * 2. processInput(pinyin) — simulateRimeKeySequence → 获取候选词
+ * 3. selectCandidate(i) — 选词 → getRimeCommit 获取提交文本
+ * 4. destroy() — 关闭引擎
  *
- * libRime 的 Android AAR 预编译版本：
- * https://github.com/HNIdesu/librime-android/releases
- *
- * 集成步骤：
- * 1. 下载 librime-android-*.aar 放到 app/libs/
- * 2. build.gradle 添加 implementation files('libs/librime-android-*.aar')
- * 3. 复制 RIME 配置/词库到 assets/rime/
+ * JNI 桥接通过 com.osfans.trime.core.RimeJni 实现，
+ * 匹配 librime_jni.so 的 native 方法签名。
  */
 class RimeEngine(private val context: Context) {
 
@@ -30,81 +27,181 @@ class RimeEngine(private val context: Context) {
 
     private var initialized = false
 
+    /** RIME 共享数据目录（schema + dictionary） */
+    private val sharedDataDir: File
+        get() = File(context.filesDir, "rime")
+
+    /** RIME 用户数据目录（学习词库、同步数据） */
+    private val userDataDir: File
+        get() = File(context.filesDir, "rime_user")
+
+    // ==================== 生命周期 ====================
+
     /**
      * 初始化 RIME 引擎
-     * 需要将 assets/rime/ 复制到 app 私有目录
+     * 1. 将 assets/rime/ 中的配置文件复制到 app 私有目录
+     * 2. 调用 JNI startupRime 启动引擎
      */
     fun initialize() {
-        // ============================================================
-        // 注意：以下为 RIME 引擎初始化框架代码
-        // 实际编译需要引入 librime-android AAR
-        //
-        // 集成 librime-android 后取消注释以下代码：
-        //
-        // val rimeDir = File(context.filesDir, "rime")
-        // if (!rimeDir.exists() || rimeDir.listFiles()?.isEmpty() == true) {
-        //     copyAssets("rime", rimeDir)
-        // }
-        //
-        // Rime.init(rimeDir.absolutePath)
-        // Rime.deployConfigFile("default.custom.yaml", "0.0.0.0")
-        // Rime.deployerInitialize(null)
-        //
-        // initialized = true
-        // ============================================================
+        if (initialized) return
 
-        // 临时：使用本地拼音模拟器，等 AAR 集成就绪后替换
-        initialized = true
+        try {
+            // 检查 JNI 是否可用
+            if (!RimeJni.isLoaded()) {
+                android.util.Log.e("RimeEngine", "librime_jni.so not loaded, falling back to simulator")
+                initialized = true
+                return
+            }
+
+            // 复制 RIME 数据文件到私有目录
+            prepareRimeData()
+
+            // 启动 RIME 引擎
+            RimeJni.startupRime(
+                sharedDataDir.absolutePath,
+                userDataDir.absolutePath,
+                "1.0.0",
+                true,  // fullCheck = true on first launch
+            )
+            initialized = true
+            android.util.Log.i("RimeEngine", "RIME engine initialized successfully")
+        } catch (e: Exception) {
+            android.util.Log.e("RimeEngine", "Failed to initialize RIME: ${e.message}", e)
+            initialized = true // Mark as initialized to use fallback
+        }
     }
 
     fun destroy() {
         if (!initialized) return
-        // Rime.destroy()
+        try {
+            if (RimeJni.isLoaded()) {
+                RimeJni.exitRime()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("RimeEngine", "Error destroying RIME: ${e.message}")
+        }
         initialized = false
     }
 
+    // ==================== 输入处理 ====================
+
     /**
-     * 处理拼音输入，返回组合文本和候选词
+     * 处理拼音输入，返回候选词列表
      */
     fun processInput(pinyinInput: String): ProcessResult {
-        if (!initialized) {
-            return ProcessResult(pinyinInput, emptyList())
+        if (pinyinInput.isEmpty()) {
+            return ProcessResult("", emptyList())
         }
 
-        // ============================================================
-        // 集成 librime-android 后取消注释以下代码：
-        //
-        // val session = Rime.createSession()
-        // Rime.simulateKeySequence(session, pinyinInput)
-        //
-        // val context = Rime.getContext(session)
-        // val composingText = context.commitTextPreview ?: ""
-        // val candidates = context.menu?.let { menu ->
-        //     val list = mutableListOf<String>()
-        //     for (i in 0 until menu.numCandidates) {
-        //         val candidate = menu.getCandidateAt(i)
-        //         candidate?.text?.let { list.add(it) }
-        //     }
-        //     list
-        // } ?: emptyList()
-        //
-        // Rime.destroySession(session)
-        //
-        // return ProcessResult(composingText, candidates)
-        // ============================================================
+        // 如果 JNI 未加载，使用本地模拟器
+        if (!initialized || !RimeJni.isLoaded()) {
+            return localPinyinSimulator(pinyinInput)
+        }
 
-        // 临时：本地拼音分词模拟
-        return localPinyinSimulator(pinyinInput)
+        return try {
+            // 先清除之前的组合状态
+            RimeJni.clearRimeComposition()
+
+            // 模拟按键序列输入拼音
+            RimeJni.simulateRimeKeySequence(pinyinInput)
+
+            // 获取上下文（包含组合文本和候选词）
+            val context = RimeJni.getRimeContext()
+            val composition = context?.composition
+            val menu = context?.menu
+
+            // 组合文本（拼音显示）
+            val composingText = composition?.preedit ?: pinyinInput
+
+            // 候选词列表
+            val candidates = menu?.candidates?.mapNotNull { it?.text } ?: emptyList()
+
+            ProcessResult(composingText, candidates)
+        } catch (e: Exception) {
+            android.util.Log.e("RimeEngine", "processInput error: ${e.message}")
+            localPinyinSimulator(pinyinInput)
+        }
     }
 
+    /**
+     * 选中某个候选词，返回提交的文本
+     */
+    fun selectCandidate(index: Int): String? {
+        if (!initialized || !RimeJni.isLoaded()) return null
+
+        return try {
+            RimeJni.selectRimeCandidate(index, false)
+            RimeJni.commitRimeComposition()
+            val commit = RimeJni.getRimeCommit()
+            commit?.text
+        } catch (e: Exception) {
+            android.util.Log.e("RimeEngine", "selectCandidate error: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * 清除当前组合状态
+     */
     fun clear() {
-        if (!initialized) return
-        // Rime.clearComposition(session)
+        if (!initialized || !RimeJni.isLoaded()) return
+        try {
+            RimeJni.clearRimeComposition()
+        } catch (e: Exception) {
+            android.util.Log.e("RimeEngine", "clear error: ${e.message}")
+        }
     }
 
-    // ============================================================
-    // 临时拼音模拟器 — 在 RIME AAR 集成前使用
-    // ============================================================
+    // ==================== RIME 数据准备 ====================
+
+    /**
+     * 将 assets/rime/ 中的文件复制到 app 私有目录
+     */
+    private fun prepareRimeData() {
+        try {
+            // 只在首次或版本更新时复制
+            sharedDataDir.mkdirs()
+            userDataDir.mkdirs()
+
+            // 创建 build 标记文件，避免每次重启都 fullCheck
+            val versionFile = File(sharedDataDir, "installation.yaml")
+            if (versionFile.exists()) {
+                // 已初始化，跳过复制
+                return
+            }
+
+            // 复制 assets/rime/ 中的所有文件
+            val assetFiles = context.assets.list("rime") ?: emptyArray()
+            for (fileName in assetFiles) {
+                val targetFile = File(sharedDataDir, fileName)
+                if (targetFile.exists()) continue
+
+                try {
+                    context.assets.open("rime/$fileName").use { input ->
+                        FileOutputStream(targetFile).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("RimeEngine", "Failed to copy $fileName: ${e.message}")
+                }
+            }
+
+            // 创建 installation.yaml
+            versionFile.writeText(
+                """# RIME installation info
+install_id: ai_marketing_ime
+sync_dir: ${userDataDir.absolutePath}
+""".trimIndent()
+            )
+
+            android.util.Log.i("RimeEngine", "RIME data prepared: ${assetFiles.size} files")
+        } catch (e: Exception) {
+            android.util.Log.e("RimeEngine", "Error preparing RIME data: ${e.message}", e)
+        }
+    }
+
+    // ==================== 回退：本地拼音模拟器 ====================
 
     private val pinyinMap = mapOf(
         "nihao" to listOf("你好"),
@@ -137,35 +234,16 @@ class RimeEngine(private val context: Context) {
     )
 
     private fun localPinyinSimulator(input: String): ProcessResult {
-        // 尝试精确匹配
         pinyinMap[input]?.let { candidates ->
             return ProcessResult(input, candidates)
         }
-
-        // 尝试前缀匹配
         val prefixMatches = pinyinMap.entries
             .filter { it.key.startsWith(input) }
             .flatMap { it.value }
             .take(5)
-
         if (prefixMatches.isNotEmpty()) {
             return ProcessResult(input, prefixMatches)
         }
-
-        // 没有匹配，返回输入本身
         return ProcessResult(input, listOf(input))
-    }
-
-    companion object {
-        /**
-         * 从 assets 复制 RIME 配置到目标目录
-         */
-        private fun copyAssets(assetPath: String, targetDir: File) {
-            targetDir.mkdirs()
-            // 实际实现：遍历 assets/rime/ 下的所有文件复制到 targetDir
-            // context.assets.list(assetPath)?.forEach { fileName ->
-            //     ...
-            // }
-        }
     }
 }
