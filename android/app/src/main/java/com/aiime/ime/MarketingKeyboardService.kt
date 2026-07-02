@@ -81,9 +81,9 @@ class MarketingKeyboardService : InputMethodService() {
             }
             "SPACE" -> {
                 // 空格：提交当前候选词 或 输入空格
-                val candidates = rimeEngine.getCandidates()
-                if (composingText.isNotEmpty() && candidates.isNotEmpty()) {
-                    commitText(candidates.first())
+                val currentCandidates = keyboardViewModel.candidates.value
+                if (composingText.isNotEmpty() && currentCandidates.isNotEmpty()) {
+                    commitText(currentCandidates.first())
                 } else {
                     ic.commitText(" ", 1)
                 }
