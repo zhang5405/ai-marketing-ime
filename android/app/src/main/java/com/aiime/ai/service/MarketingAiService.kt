@@ -24,7 +24,7 @@ enum class AiMode(
 ) {
     POLISH("polish", "润色", Icons.Filled.AutoFixHigh),
     REPLY("reply", "智能回复", Icons.Filled.Chat),
-    GENERATE("generate", "生成话术", Icons.Filled.Wand),
+    GENERATE("generate", "生成话术", Icons.Filled.AutoAwesome),
 }
 
 enum class AiTone(val id: String, val displayName: String) {
@@ -208,23 +208,23 @@ class MarketingAiService(private val config: AiConfig) {
         val reader = response.body?.byteStream()?.bufferedReader()
             ?: throw IOException("空响应")
 
-        withContext(Dispatchers.IO) {
-            reader.forEachLine { line ->
-                if (line.startsWith("data: ")) {
-                    val data = line.removePrefix("data: ")
-                    if (data == "[DONE]") return@withContext
-                    try {
-                        val json = JSONObject(data)
-                        val delta = json.getJSONArray("choices")
-                            .getJSONObject(0)
-                            .optJSONObject("delta")
-                        val content = delta?.optString("content") ?: ""
-                        if (content.isNotEmpty()) {
-                            emit(content)
-                        }
-                    } catch (_: Exception) {
-                        // 跳过解析错误
+        var line: String?
+        while (withContext(Dispatchers.IO) { reader.readLine() }.also { line = it } != null) {
+            val currentLine = line ?: break
+            if (currentLine.startsWith("data: ")) {
+                val data = currentLine.removePrefix("data: ")
+                if (data == "[DONE]") break
+                try {
+                    val json = JSONObject(data)
+                    val delta = json.getJSONArray("choices")
+                        .getJSONObject(0)
+                        .optJSONObject("delta")
+                    val content = delta?.optString("content") ?: ""
+                    if (content.isNotEmpty()) {
+                        emit(content)
                     }
+                } catch (_: Exception) {
+                    // 跳过解析错误
                 }
             }
         }

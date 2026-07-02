@@ -133,7 +133,7 @@ fun CandidateBar(
             items(candidates) { candidate ->
                 Surface(
                     shape = RoundedCornerShape(6.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier.clickable { onCandidateClick(candidate) },
                 ) {
                     Text(
@@ -219,9 +219,9 @@ fun PinyinKey(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(6.dp),
         color = if (isSpecial)
-            MaterialTheme.colorScheme.surfaceContainerHigh
+            MaterialTheme.colorScheme.surfaceVariant
         else
-            MaterialTheme.colorScheme.surfaceContainerLow,
+            MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -363,7 +363,7 @@ fun KeyboardTabBar(
             .fillMaxWidth()
             .height(36.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow),
+            .background(MaterialTheme.colorScheme.surface),
     ) {
         KeyboardTab.entries.forEach { tab ->
             val isSelected = currentTab == tab

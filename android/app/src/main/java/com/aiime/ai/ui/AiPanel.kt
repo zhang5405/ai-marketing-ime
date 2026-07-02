@@ -175,7 +175,7 @@ fun AiPanel(
         Spacer(Modifier.height(10.dp))
 
         // ===== 结果区域 =====
-        HorizontalDivider()
+        Divider()
 
         if (resultText.isNotEmpty()) {
             Column(modifier = Modifier.padding(top = 8.dp)) {
@@ -208,7 +208,7 @@ fun AiPanel(
                 // 结果显示
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
@@ -260,28 +260,32 @@ fun AiModeSelector(
     onModeChange: (AiMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    SingleChoiceSegmentedButtonRow(modifier = modifier) {
-        AiMode.entries.forEachIndexed { index, mode ->
-            SegmentedButton(
-                selected = currentMode == mode,
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        AiMode.entries.forEach { mode ->
+            val selected = currentMode == mode
+            FilterChip(
+                selected = selected,
                 onClick = { onModeChange(mode) },
-                shape = SegmentedButtonDefaults.itemShape(index, AiMode.entries.size),
-                icon = {
+                label = { Text(mode.displayName, fontSize = 12.sp) },
+                leadingIcon = {
                     Icon(
                         imageVector = mode.icon,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(14.dp),
                     )
                 },
-            ) {
-                Text(mode.displayName, fontSize = 12.sp)
-            }
+                modifier = Modifier.height(32.dp),
+            )
         }
     }
 }
 
 // ==================== 语气选择器 ====================
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiToneSelector(
     currentTone: AiTone,
