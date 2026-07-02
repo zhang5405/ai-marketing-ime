@@ -24,3 +24,6 @@ app/build/
 .DS_Store
 Thumbs.db
 *.bak
+__pycache__/
+*.pyc
+*.db
