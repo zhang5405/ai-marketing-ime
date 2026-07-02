@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 营销输入法 · 基于 BiBi Keyboard 改造技术方案</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --text2: #6b7280;
+    --text3: #9ca3af;
+    --blue: #185FA5;
+    --blue-bg: #E6F1FB;
+    --blue-border: #B5D4F4;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --purple-border: #CECBF6;
+    --green: #0F6E56;
+    --green-bg: #E1F5EE;
+    --green-border: #9FE1CB;
+    --red: #A32D2D;
+    --red-bg: #FCEBEB;
+    --red-border: #F7C1C1;
+    --amber: #854F0B;
+    --amber-bg: #FAEEDA;
+    --amber-border: #FAC775;
+    --teal: #0D9488;
+    --teal-bg: #F0FDFA;
+    --teal-border: #99F6E4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 24px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 26px; font-weight: 700; margin: 32px 0 8px; }
+  h1:first-child { margin-top: 0; }
+  h2 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: var(--text); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 10px; }
+  p { margin: 8px 0; font-size: 14px; }
+  ul, ol { margin: 8px 0 8px 24px; font-size: 14px; }
+  li { margin: 4px 0; }
+
+  .header {
+    background: linear-gradient(135deg, #0D9488 0%, #534AB7 100%);
+    color: white;
+    padding: 36px 32px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+  }
+  .header h1 { color: white; margin: 0 0 8px; font-size: 28px; }
+  .header .sub { font-size: 15px; opacity: 0.85; }
+  .header .meta { display: flex; gap: 24px; margin-top: 16px; font-size: 13px; opacity: 0.8; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+
+  .alert {
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .alert-red { background: var(--red-bg); border: 1px solid var(--red-border); }
+  .alert-amber { background: var(--amber-bg); border: 1px solid var(--amber-border); }
+  .alert-green { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .alert-blue { background: var(--blue-bg); border: 1px solid var(--blue-border); }
+  .alert-teal { background: var(--teal-bg); border: 1px solid var(--teal-border); }
+  .alert-purple { background: var(--purple-bg); border: 1px solid var(--purple-border); }
+  .alert-title { font-weight: 700; margin-bottom: 8px; font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #f3f4f6; padding: 10px 14px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: #f9fafb; }
+
+  code { font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; font-size: 12.5px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 16px 20px; border-radius: 10px; overflow-x: auto; margin: 12px 0; font-size: 13px; line-height: 1.5; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+  .kw { color: #93c5fd; }
+  .str { color: #86efac; }
+  .cmt { color: #64748b; }
+  .type { color: #fbbf24; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .tag-red { background: var(--red-bg); color: var(--red); }
+  .tag-green { background: var(--green-bg); color: var(--green); }
+  .tag-blue { background: var(--blue-bg); color: var(--blue); }
+  .tag-amber { background: var(--amber-bg); color: var(--amber); }
+  .tag-purple { background: var(--purple-bg); color: var(--purple); }
+  .tag-teal { background: var(--teal-bg); color: var(--teal); }
+
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-item::before { content: ''; position: absolute; left: -24px; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--teal); background: white; }
+  .timeline-item.done::before { background: var(--green); border-color: var(--green); }
+  .timeline-date { font-size: 12px; color: var(--text3); }
+  .timeline-title { font-weight: 600; font-size: 14px; margin: 2px 0; }
+  .timeline-desc { font-size: 13px; color: var(--text2); }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+  .phase-box { border-radius: 10px; padding: 16px 20px; margin: 8px 0; }
+  .phase-1 { background: var(--teal-bg); border-left: 4px solid var(--teal); }
+  .phase-2 { background: var(--purple-bg); border-left: 4px solid var(--purple); }
+  .phase-3 { background: var(--green-bg); border-left: 4px solid var(--green); }
+
+  .schema-table td:first-child { font-weight: 600; white-space: nowrap; }
+  .api-method { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; color: white; }
+  .method-get { background: #0F6E56; }
+  .method-post { background: #185FA5; }
+  .method-sse { background: #534AB7; }
+
+  .vs-header { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+  .vs-col { padding: 16px 20px; border-radius: 12px; }
+  .vs-col-old { background: var(--amber-bg); border: 1px solid var(--amber-border); }
+  .vs-col-new { background: var(--teal-bg); border: 1px solid var(--teal-border); }
+  .vs-col h3 { margin-top: 0; }
+
+  .module-card { border-radius: 10px; padding: 16px; margin: 8px 0; border: 1px solid var(--border); }
+  .module-keep { background: var(--teal-bg); border-left: 4px solid var(--teal); }
+  .module-enhance { background: var(--blue-bg); border-left: 4px solid var(--blue); }
+  .module-new { background: var(--purple-bg); border-left: 4px solid var(--purple); }
+  .module-remove { background: var(--red-bg); border-left: 4px solid var(--red); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AI 营销输入法 · 基于 BiBi Keyboard 改造技术方案</h1>
+  <div class="sub">Apache 2.0 无 GPL 风险 · Kotlin + Compose 现代栈 · 话术库 + AI营销 + 拼音输入</div>
+  <div class="meta">
+    <span>版本: v1.0</span>
+    <span>日期: 2026-06-29</span>
+    <span>基础项目: BiBi Keyboard (Apache 2.0)</span>
+    <span>预估工期: 5-8周</span>
+  </div>
+</div>
+
+<!-- ==================== 路径选择 ==================== -->
+<h2>1. 为什么选 BiBi Keyboard 而不是 Trime</h2>
+
+<div class="vs-header">
+  <div class="vs-col vs-col-old">
+    <h3 style="color:var(--amber);">❌ 旧路径：Fork Trime (GPL-3.0)</h3>
+    <table style="font-size:13px;">
+      <tr><td><strong>许可证</strong></td><td><span class="tag tag-red">GPL-3.0</span> → 商用必须开源全部代码</td></tr>
+      <tr><td><strong>技术栈</strong></td><td>Kotlin + YAML配置 + 传统View</td></tr>
+      <tr><td><strong>IME框架</strong></td><td>Trime 自有，定制受 YAML 约束</td></tr>
+      <tr><td><strong>AI集成</strong></td><td>需从零开发 SSE + LLM 对接</td></tr>
+      <tr><td><strong>悬浮球</strong></td><td>无（Phase 1 不包含）</td></tr>
+      <tr><td><strong>语音输入</strong></td><td>Phase 1 砍掉了</td></tr>
+      <tr><td><strong>总工期</strong></td><td>22-35天 + 15-23天脱GPL = <strong>37-58天</strong></td></tr>
+      <tr><td><strong>法律风险</strong></td><td>Phase 2前必须迁移引擎，否则不可商用</td></tr>
+    </table>
+  </div>
+  <div class="vs-col vs-col-new">
+    <h3 style="color:var(--teal);">✅ 新路径：基于 BiBi Keyboard (Apache 2.0)</h3>
+    <table style="font-size:13px;">
+      <tr><td><strong>许可证</strong></td><td><span class="tag tag-green">Apache 2.0</span> → 允许商用闭源，无传染</td></tr>
+      <tr><td><strong>技术栈</strong></td><td>Kotlin 2.2 + Jetpack Compose + Material3</td></tr>
+      <tr><td><strong>IME框架</strong></td><td>已有 AsrKeyboardService (InputMethodService)</td></tr>
+      <tr><td><strong>AI集成</strong></td><td>已有 LlmPostProcessor → 改 Prompt 即可变营销AI</td></tr>
+      <tr><td><strong>悬浮球</strong></td><td>已有，跨应用输入场景更实用</td></tr>
+      <tr><td><strong>语音输入</strong></td><td>已有 sherpa-onnx 本地 + 云端 ASR</td></tr>
+      <tr><td><strong>总工期</strong></td><td><strong>19-31天</strong>（无脱GPL负担）</td></tr>
+      <tr><td><strong>法律风险</strong></td><td>从Day 1零风险</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="alert alert-green">
+  <div class="alert-title">核心结论</div>
+  <p><strong>选择 BiBi Keyboard 路径，省 2-4 周工期 + 从第一天起无 GPL 法律风险。</strong>唯一新增工作是集成 librime-android 拼音引擎（这本来就是 Phase 2 的任务，现在提前做而已）。</p>
+  <p>新增收益：免费获得语音输入能力 + 悬浮球跨应用使用 + 现代化 Compose UI 框架。</p>
+</div>
+
+<!-- ==================== BiBi Keyboard 代码结构 ==================== -->
+<h2>2. BiBi Keyboard 代码结构分析</h2>
+
+<div class="card">
+  <h3>项目基本信息</h3>
+  <table>
+    <tr><th>属性</th><th>值</th></tr>
+    <tr><td>仓库地址</td><td><code>https://github.com/BryceWG/BiBi-Keyboard</code></td></tr>
+    <tr><td>许可证</td><td><span class="tag tag-green">Apache 2.0</span></td></tr>
+    <tr><td>包名</td><td><code>com.brycewg.asrkb</code></td></tr>
+    <tr><td>主要语言</td><td>Kotlin 2.2 + Jetpack Compose</td></tr>
+    <tr><td>最低SDK</td><td>Android 5.0 (minSdk 21)</td></tr>
+    <tr><td>目标SDK</td><td>Android 15 (targetSdk 35)</td></tr>
+    <tr><td>提交次数</td><td>1,045 次，活跃开发</td></tr>
+    <tr><td>核心能力</td><td>11个ASR引擎 + LLM后处理 + 悬浮球 + IME键盘</td></tr>
+  </table>
+</div>
+
+<h3>2.1 模块包结构</h3>
+<table>
+  <tr><th>包名</th><th>文件数</th><th>核心内容</th><th>改造类型</th></tr>
+  <tr>
+    <td><code>asr/</code></td>
+    <td>68</td>
+    <td>11个ASR引擎(sherpa-onnx本地+云端)、VAD、LlmPostProcessor、ChineseItn逆文本规范化</td>
+    <td><span class="tag tag-teal">保留+瘦身</span></td>
+  </tr>
+  <tr>
+    <td><code>ime/</code></td>
+    <td>20+</td>
+    <td>AsrKeyboardService(InputMethodService)、键盘布局、Compose键盘UI、CursorPunctuationNavigator</td>
+    <td><span class="tag tag-blue">增强RIME</span></td>
+  </tr>
+  <tr>
+    <td><code>imebridge/</code></td>
+    <td>5+</td>
+    <td>ImeBridgeClient跨IME通信、会话管理(sessionId)、ApiLogStore</td>
+    <td><span class="tag tag-teal">直接复用</span></td>
+  </tr>
+  <tr>
+    <td><code>ui/floating/</code></td>
+    <td>15+</td>
+    <td>悬浮球、球体动画、权限管理、拖拽手势</td>
+    <td><span class="tag tag-teal">直接复用</span></td>
+  </tr>
+  <tr>
+    <td><code>ui/settings/</code></td>
+    <td>10+</td>
+    <td>miuix设置页、引擎选择、音频配置</td>
+    <td><span class="tag tag-blue">扩展设置</span></td>
+  </tr>
+  <tr>
+    <td><code>ui/widgets/</code></td>
+    <td>10+</td>
+    <td>波形可视化、候选词组件、文本编辑组件</td>
+    <td><span class="tag tag-blue">扩展候选</span></td>
+  </tr>
+  <tr>
+    <td><code>store/</code></td>
+    <td>5+</td>
+    <td>数据存储、配置管理</td>
+    <td><span class="tag tag-blue">扩展话术存储</span></td>
+  </tr>
+  <tr>
+    <td><code>clipboard/</code></td>
+    <td>3</td>
+    <td>剪贴板管理</td>
+    <td><span class="tag tag-teal">直接复用</span></td>
+  </tr>
+  <tr>
+    <td><code>aidl/</code></td>
+    <td>3</td>
+    <td>fcitx5语音输入AIDL联动</td>
+    <td><span class="tag tag-amber">可选保留</span></td>
+  </tr>
+  <tr>
+    <td><code>analytics/</code></td>
+    <td>3</td>
+    <td>API日志分析</td>
+    <td><span class="tag tag-amber">可选保留</span></td>
+  </tr>
+</table>
+
+<h3>2.2 关键源文件</h3>
+<div class="card">
+  <table>
+    <tr><th>文件</th><th>职责</th><th>改造要点</th></tr>
+    <tr>
+      <td><code>AsrKeyboardService.kt</code></td>
+      <td>InputMethodService 生命周期管理，键盘创建/销毁</td>
+      <td>增加话术/AI Tab 切换逻辑，集成 RIME 拼音引擎</td>
+    </tr>
+    <tr>
+      <td><code>LlmPostProcessor.kt</code></td>
+      <td>调用 LLM API 对 ASR 结果做纠错/润色</td>
+      <td>改 system_prompt → 营销文案生成，新增3个模式(润色/回复/生成)</td>
+    </tr>
+    <tr>
+      <td><code>SpeechRecognizer.kt</code></td>
+      <td>ASR引擎抽象接口，所有引擎统一调用</td>
+      <td>保留接口，砍掉8个不需要的引擎实现</td>
+    </tr>
+    <tr>
+      <td><code>FloatingBallService.kt</code></td>
+      <td>悬浮球生命周期，跨应用语音输入入口</td>
+      <td>增加「话术快搜」入口（点击悬浮球→弹出话术搜索框）</td>
+    </tr>
+    <tr>
+      <td><code>ImeBridgeClient.kt</code></td>
+      <td>跨IME通信桥梁，sessionId管理</td>
+      <td>直接复用，无需改动</td>
+    </tr>
+    <tr>
+      <td><code>CandidateView.kt</code></td>
+      <td>Compose候选词展示组件</td>
+      <td>扩展为三Tab：候选词 / 话术列表 / AI结果</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ==================== 整体架构 ==================== -->
+<h2>3. 改造后的整体架构</h2>
+
+<div class="card">
+  <h3>三层架构（改造后）</h3>
+  <table>
+    <tr><th>层级</th><th>组件</th><th>技术选型</th><th>来源</th><th>职责</th></tr>
+    <tr>
+      <td rowspan="7"><strong>Android 应用层</strong></td>
+      <td>IME 框架</td>
+      <td>AsrKeyboardService (BiBi)</td>
+      <td><span class="tag tag-teal">BiBI 保留</span></td>
+      <td>InputMethodService 生命周期、键盘切换</td>
+    </tr>
+    <tr>
+      <td>拼音输入引擎</td>
+      <td>librime-android (BSD)</td>
+      <td><span class="tag tag-purple">新增</span></td>
+      <td>拼音/笔画输入，候选词管理</td>
+    </tr>
+    <tr>
+      <td>语音输入</td>
+      <td>sherpa-onnx + DeepSeek ASR</td>
+      <td><span class="tag tag-teal">BiBI 保留</span></td>
+      <td>语音→文字输入，营销场景快速口述</td>
+    </tr>
+    <tr>
+      <td>话术模块</td>
+      <td>Kotlin + Room</td>
+      <td><span class="tag tag-purple">新增</span></td>
+      <td>话术库本地缓存、分类浏览、搜索、一键输入</td>
+    </tr>
+    <tr>
+      <td>AI 营销模块</td>
+      <td>LlmPostProcessor → MarketingAIProcessor</td>
+      <td><span class="tag tag-blue">BiBI改造</span></td>
+      <td>AI文本润色、营销文案生成、自动回复</td>
+    </tr>
+    <tr>
+      <td>悬浮球</td>
+      <td>FloatingBallService (BiBi)</td>
+      <td><span class="tag tag-teal">BiBI 保留</span></td>
+      <td>跨应用语音+话术快搜入口</td>
+    </tr>
+    <tr>
+      <td>键盘 UI</td>
+      <td>Jetpack Compose (BiBi)</td>
+      <td><span class="tag tag-blue">BiBI改造</span></td>
+      <td>标准键盘 + 话术 Tab + AI Tab 三模式切换</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><strong>后端服务层</strong></td>
+      <td>AI 代理</td>
+      <td>Python FastAPI</td>
+      <td><span class="tag tag-purple">新增</span></td>
+      <td>转发 DeepSeek API，SSE 流式，密钥管理，Prompt 模板</td>
+    </tr>
+    <tr>
+      <td>话术管理 API</td>
+      <td>同上 + PostgreSQL</td>
+      <td><span class="tag tag-purple">新增</span></td>
+      <td>话术 CRUD、分类管理、批量导入</td>
+    </tr>
+    <tr>
+      <td>网络穿透</td>
+      <td>Tailscale（免费）</td>
+      <td><span class="tag tag-purple">新增</span></td>
+      <td>手机随时随地访问本地后端</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>外部服务</strong></td>
+      <td>DeepSeek API</td>
+      <td>V3 + R1</td>
+      <td>—</td>
+      <td>LLM推理，AI润色和回复生成</td>
+    </tr>
+    <tr>
+      <td>sherpa-onnx 模型</td>
+      <td>本地ASR (50-100MB)</td>
+      <td><span class="tag tag-teal">BiBI 保留</span></td>
+      <td>离线语音识别（Phase 2可选加载）</td>
+    </tr>
+  </table>
+</div>
+
+<div class="alert alert-teal">
+  <div class="alert-title">架构亮点：BiBI 提供了 IME + ASR + LLM + 悬浮球 四个核心模块</div>
+  <p>你只需要新增 <strong>拼音引擎 + 话术库 + 营销AI Prompt</strong> 三块，其余全部复用 BiBi 的成熟代码。</p>
+  <p>对比 Trime 方案：Trime 只提供了拼音引擎（YAML配置），IME框架+AI模块+悬浮球全部需要从零开发。</p>
+</div>
+
+<!-- ==================== 改造模块详解 ==================== -->
+<h2>4. 改造模块详解</h2>
+
+<h3>4.1 ✅ 直接复用模块（无需改动）</h3>
+
+<div class="module-card module-keep">
+  <h3>悬浮球系统 (ui/floating/)</h3>
+  <p>BiBi 的悬浮球已经实现了完整的跨应用输入体验：拖拽移动、权限管理、动画效果、语音触发。这是营销场景的杀手级功能——用户在任何 App 里点悬浮球就能快速使用话术。</p>
+  <p><strong>改造点</strong>：新增一个悬浮球快捷菜单项「📋 话术」，点击弹出话术搜索悬浮窗。</p>
+</div>
+
+<div class="module-card module-keep">
+  <h3>IME Bridge 跨通信 (imebridge/)</h3>
+  <p>ImeBridgeClient 实现了跨IME通信机制和会话管理，让你的营销键盘能与系统默认键盘协同工作。用户可以选择只使用悬浮球+话术功能，不必完全替换系统输入法。</p>
+  <p><strong>改造点</strong>：零改动，直接复用。</p>
+</div>
+
+<div class="module-card module-keep">
+  <h3>剪贴板管理 (clipboard/)</h3>
+  <p>剪贴板监听和管理功能，话术输入后自动清理剪贴板等场景可复用。</p>
+  <p><strong>改造点</strong>：零改动，直接复用。</p>
+</div>
+
+<h3>4.2 🔵 改造增强模块（修改现有代码）</h3>
+
+<div class="module-card module-enhance">
+  <h3>IME 键盘框架 → 三Tab切换 (ime/)</h3>
+  <p>BiBi 现有的 <code>AsrKeyboardService</code> 只有一个模式（语音输入），需要改造为三Tab切换模式：</p>
+  <table style="font-size:13px;">
+    <tr><th>Tab</th><th>功能</th><th>实现方式</th></tr>
+    <tr><td>⌨️ 拼音键盘</td><td>标准拼音输入 + 候选词</td><td>集成 librime-android，<code>onKeyDown</code> → <code>RimeEngine.processKey()</code> → 候选词列表</td></tr>
+    <tr><td>📋 话术面板</td><td>分类Tab + 话术列表 + 一键输入</td><td>新增 Compose <code>ScriptPanelView</code>，Room 数据源</td></tr>
+    <tr><td>🤖 AI 面板</td><td>润色/回复/生成 + 流式输出</td><td>改造 <code>LlmPostProcessor</code>，新增 <code>AiPanelView</code></td></tr>
+  </table>
+  <p><strong>代码改动</strong>：修改 <code>AsrKeyboardService.onCreateInputView()</code>，返回一个包含三Tab的 Compose 容器。每个Tab切换时显示对应面板。语音输入按钮移至拼音键盘Tab内的工具栏。</p>
+</div>
+
+<div class="module-card module-enhance">
+  <h3>LLM 后处理 → 营销AI处理器 (asr/LlmPostProcessor.kt)</h3>
+  <p>BiBi 的 <code>LlmPostProcessor</code> 当前做的事：ASR识别结果 → LLM纠错 → 输出修正文本。本质是 <strong>"调用LLM API + 流式输出"</strong>。</p>
+  <p><strong>改造方案</strong>：</p>
+  <table style="font-size:13px;">
+    <tr><th>改造项</th><th>原BiBI</th><th>改造后</th></tr>
+    <tr><td>system_prompt</td><td>"请修正语音识别错误"</td><td>3个营销Prompt模板：润色/回复/文案生成</td></tr>
+    <tr><td>LLM后端</td><td>OpenAI/DeepSeek API直连</td><td>经由本地FastAPI代理（密钥安全）</td></tr>
+    <tr><td>输入来源</td><td>仅ASR语音结果</td><td>3种：①ASR语音 ②手动输入文本 ③话术模板+客户消息</td></tr>
+    <tr><td>输出目标</td><td>替换ASR结果上屏</td><td>流式展示到AI面板 → 用户确认 → 上屏/复制</td></tr>
+    <tr><td>模式数量</td><td>1个（纠错）</td><td>3个（润色/自动回复/文案生成）</td></tr>
+  </table>
+  <p><strong>工作量</strong>：2-3天，主要是改Prompt模板和新增模式切换逻辑，SSE流式部分完全复用。</p>
+</div>
+
+<div class="module-card module-enhance">
+  <h3>ASR引擎 → 瘦身保留 (asr/)</h3>
+  <p>BiBI 有11个ASR引擎，你的营销场景只需要2个：</p>
+  <table style="font-size:13px;">
+    <tr><th>保留</th><th>原因</th></tr>
+    <tr><td><span class="tag tag-green">sherpa-onnx</span> 本地ASR</td><td>离线可用，隐私友好，营销场景"口述话术"很实用</td></tr>
+    <tr><td><span class="tag tag-green">DeepSeek</span> 云端ASR</td><td>更准确，适合正式场合</td></tr>
+  </table>
+  <p><strong>砍掉</strong>：Azure、Google、Amazon、iFlytek等8个引擎实现（减少代码体积和依赖）。</p>
+  <p><strong>工作量</strong>：1天，删除不需要的引擎实现文件和相关配置。</p>
+</div>
+
+<h3>4.3 🟣 新增模块（从零开发）</h3>
+
+<div class="module-card module-new">
+  <h3>拼音输入引擎 (librime-android 集成)</h3>
+  <p>这是改造中最大的新增模块。BiBi 是纯语音输入法，没有拼音打字能力。必须集成 librime-android（BSD许可证，无GPL风险）补上拼音引擎。</p>
+  
+  <div class="card" style="margin-top:12px; background:#f9fafb;">
+    <h3 style="margin-top:0;">集成方案</h3>
+    <table style="font-size:13px;">
+      <tr><th>步骤</th><th>工作内容</th><th>预估工时</th></tr>
+      <tr><td>C2-1</td><td>引入 <code>librime-android</code> AAR 到 build.gradle.kts</td><td>0.5天</td></tr>
+      <tr><td>C2-2</td><td>创建 <code>RimeEngineBridge.kt</code> 桥接类，封装 librime API</td><td>1天</td></tr>
+      <tr><td>C2-3</td><td>在 <code>AsrKeyboardService.onKeyDown()</code> 中分发按键事件：拼音模式→RIME，语音模式→ASR</td><td>1天</td></tr>
+      <tr><td>C2-4</td><td>RIME 方案配置：部署默认拼音方案 + 词典</td><td>1天</td></tr>
+      <tr><td>C2-5</td><td>候选词面板对接：RIME 候选 → Compose CandidateView</td><td>1天</td></tr>
+      <tr><td><strong>合计</strong></td><td></td><td><strong>3-5天</strong></td></tr>
+    </table>
+  </div>
+
+  <pre><code><span class="cmt">// RimeEngineBridge.kt — RIME引擎桥接类</span>
+<span class="kw">class</span> <span class="type">RimeEngineBridge</span>(context: <span class="type">Context</span>) {
+    <span class="kw">private val</span> rime = <span class="type">Rime</span>(context)  <span class="cmt">// librime-android API</span>
+
+    <span class="kw">fun</span> <span class="type">processKey</span>(keyCode: <span class="type">Int</span>, modifiers: <span class="type">Int</span>): <span class="type">RimeResult</span> {
+        <span class="kw">val</span> handled = rime.processKey(keyCode, modifiers)
+        <span class="kw">return</span> <span class="kw">if</span> (handled) {
+            <span class="type">RimeResult</span>(
+                composing = rime.getComposition(),    <span class="cmt">// 拼音组合串</span>
+                candidates = rime.getCandidates(),     <span class="cmt">// 候选词列表</span>
+                committed = rime.getCommittedText()    <span class="cmt">// 上屏文本</span>
+            )
+        } <span class="kw">else</span> <span class="type">RimeResultEmpty</span>
+    }
+
+    <span class="kw">fun</span> <span class="type">selectCandidate</span>(index: <span class="type">Int</span>) {
+        rime.selectCandidate(index)
+    }
+}</code></pre>
+</div>
+
+<div class="module-card module-new">
+  <h3>话术库模块 (script/)</h3>
+  <p>全新的话术库模块，实现营销话术的本地缓存、分类浏览、搜索、一键输入。</p>
+  
+  <div class="card" style="margin-top:12px; background:#f9fafb;">
+    <h3 style="margin-top:0;">模块结构</h3>
+    <pre><code><span class="cmt">// 新增包：com.brycewg.asrkb.script/</span>
+script/
+├── <span class="type">ScriptEntity.kt</span>          <span class="cmt">// Room数据实体</span>
+├── <span class="type">ScriptDao.kt</span>             <span class="cmt">// DAO查询接口</span>
+├── <span class="type">ScriptDatabase.kt</span>        <span class="cmt">// Room数据库定义</span>
+├── <span class="type">ScriptRepository.kt</span>      <span class="cmt">// 数据仓库（本地+远程同步）</span>
+├── <span class="type">ScriptViewModel.kt</span>       <span class="cmt">// ViewModel</span>
+├── <span class="type">ScriptPanelView.kt</span>       <span class="cmt">// Compose话术面板UI</span>
+├── <span class="type">ScriptCategoryTab.kt</span>     <span class="cmt">// 分类Tab组件</span>
+├── <span class="type">ScriptListAdapter.kt</span>     <span class="cmt">// 话术列表+搜索</span>
+└── <span class="type">ScriptSyncService.kt</span>     <span class="cmt">// 后端话术同步服务</span></code></pre>
+  </div>
+
+  <table style="font-size:13px; margin-top:12px;">
+    <tr><th>功能</th><th>描述</th><th>验收标准</th></tr>
+    <tr><td>分类浏览</td><td>按场景分类（促单、售后、客户跟进、报价等）Tab切换</td><td>能切换分类，快速找到话术</td></tr>
+    <tr><td>搜索</td><td>关键词搜索话术标题和内容</td><td>输入关键词能实时筛选</td></tr>
+    <tr><td>一键输入</td><td>点击话术 → 直接输入到当前输入框</td><td>点击即上屏，键盘切回拼音Tab</td></tr>
+    <tr><td>后端同步</td><td>启动时从后端全量同步话术，后台增量更新</td><td>在管理后台添加话术 → 手机端立即可见</td></tr>
+    <tr><td>使用统计</td><td>记录每条话术使用次数，热门话术优先排序</td><td>使用次数越多排越前</td></tr>
+  </table>
+</div>
+
+<div class="module-card module-new">
+  <h3>后端服务 (FastAPI + PostgreSQL + Tailscale)</h3>
+  <p>后端方案完全复用原Phase 1方案的设计，仅适配BiBi的API调用方式：</p>
+  <ul>
+    <li><strong>话术CRUD API</strong>：与原方案完全一致</li>
+    <li><strong>AI代理 SSE</strong>：与原方案完全一致，BiBI已有OkHttp SSE客户端可复用</li>
+    <li><strong>本地部署 + Tailscale</strong>：与原方案完全一致</li>
+    <li><strong>管理后台</strong>：与原方案完全一致</li>
+  </ul>
+  <p><strong>差异点</strong>：原方案用 Retrofit+OkHttp，BiBI已有 OkHttp 可直接复用，无需额外引入 Retrofit。</p>
+</div>
+
+<!-- ==================== 键盘布局方案 ==================== -->
+<h2>5. 键盘布局设计</h2>
+
+<div class="card">
+  <h3>三Tab切换架构（Compose 实现）</h3>
+  <p>BiBI 使用 Jetpack Compose 渲染键盘UI，改造后设计三Tab模式：</p>
+  
+  <pre><code><span class="cmt">// KeyboardRootView.kt — 键盘根容器</span>
+<span class="kw">@Composable</span>
+<span class="kw">fun</span> <span class="type">KeyboardRootView</span>(
+    currentTab: <span class="type">KeyboardTab</span>,   <span class="cmt">// 拼音 | 话术 | AI</span>
+    onTabChange: (<span class="type">KeyboardTab</span>) -> <span class="type">Unit</span>
+) {
+    <span class="type">Column</span> {
+        <span class="cmt">// 顶部Tab栏</span>
+        <span class="type">KeyboardTabBar</span>(currentTab, onTabChange)
+
+        <span class="cmt">// 内容区域：根据Tab切换</span>
+        <span class="kw">when</span> (currentTab) {
+            <span class="type">KeyboardTab</span>.Pinyin  -> <span class="type">PinyinKeyboardView</span>()    <span class="cmt">// RIME + 语音按钮</span>
+            <span class="type">KeyboardTab</span>.Script  -> <span class="type">ScriptPanelView</span>()        <span class="cmt">// 话术面板</span>
+            <span class="type">KeyboardTab</span>.Ai      -> <span class="type">AiPanelView</span>()            <span class="cmt">// AI面板</span>
+        }
+    }
+}</code></pre>
+</div>
+
+<h3>5.1 拼音键盘Tab</h3>
+<div class="card">
+  <p>标准拼音键盘布局 + 底部工具栏：</p>
+  <table style="font-size:13px;">
+    <tr><th>区域</th><th>内容</th></tr>
+    <tr><td>候选词栏</td><td>RIME候选词列表，支持翻页</td></tr>
+    <tr><td>键盘区</td><td>标准QWERTY布局（Compose渲染），支持长按符号</td></tr>
+    <tr><td>底部工具栏</td><td>[📋 话术] [🤖 AI] [🎤 语音] [⌨️ 中/英] [⚙️ 设置]</td></tr>
+  </table>
+  <p>🎤 语音按钮保留 BiBI 的语音输入能力，营销场景很实用：口述粗略想法 → AI润色成专业话术。</p>
+</div>
+
+<h3>5.2 话术面板Tab</h3>
+<div class="card">
+  <table style="font-size:13px;">
+    <tr><th>区域</th><th>内容</th></tr>
+    <tr><td>分类Tab</td><td>[全部] [促单] [售后] [跟进] [报价] ...（横向滚动）</td></tr>
+    <tr><td>搜索栏</td><td>关键词搜索框（实时筛选）</td></tr>
+    <tr><td>话术列表</td><td>每条显示：标题 + 内容摘要 + 使用次数，按热度排序</td></tr>
+    <tr><td>底部栏</td><td>[← 返回拼音] [🔍 管理话术]（打开管理后台URL）</td></tr>
+  </table>
+</div>
+
+<h3>5.3 AI面板Tab</h3>
+<div class="card">
+  <table style="font-size:13px;">
+    <tr><th>区域</th><th>内容</th></tr>
+    <tr><td>模式选择</td><td>[✨ 润色] [💬 回复] [📝 生成] 三种AI模式</td></tr>
+    <tr><td>输入区</td><td>待处理文本（从剪贴板粘贴或手动输入）</td></tr>
+    <tr><td>AI输出区</td><td>SSE流式展示AI结果，逐字渲染</td></tr>
+    <tr><td>操作栏</td><td>[✅ 使用上屏] [🔄 重新生成] [❌ 取消] [← 返回拼音]</td></tr>
+  </table>
+  
+  <h3>AI三种模式说明</h3>
+  <table style="font-size:13px;">
+    <tr><th>模式</th><th>System Prompt</th><th>输入</th><th>输出</th></tr>
+    <tr>
+      <td>✨ 润色</td>
+      <td>"你是营销文案专家，请将以下文字润色为专业、有说服力的营销话术..."</td>
+      <td>用户输入的粗略文字</td>
+      <td>润色后的专业话术</td>
+    </tr>
+    <tr>
+      <td>💬 回复</td>
+      <td>"你是营销顾问，客户说了以下内容，请生成专业、礼貌的回复..."</td>
+      <td>客户消息（从聊天App复制）</td>
+      <td>专业回复文案</td>
+    </tr>
+    <tr>
+      <td>📝 生成</td>
+      <td>"你是营销文案创作专家，请根据以下主题/场景生成营销话术..."</td>
+      <td>主题关键词（如"促销活动"、"新品发布"）</td>
+      <td>完整营销话术</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ==================== 数据库设计 ==================== -->
+<h2>6. 数据库设计</h2>
+
+<h3>6.1 后端 PostgreSQL（与原Phase1方案一致）</h3>
+<pre><code><span class="cmt">-- 话术分类表</span>
+<span class="kw">CREATE TABLE</span> script_category (
+    id          <span class="type">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+    name        <span class="type">VARCHAR</span>(64) <span class="kw">NOT NULL</span>,
+    sort_order  <span class="type">INT</span> <span class="kw">DEFAULT</span> 0,
+    icon        <span class="type">VARCHAR</span>(256),
+    created_at  <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>(),
+    updated_at  <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>()
+);
+
+<span class="cmt">-- 话术表</span>
+<span class="kw">CREATE TABLE</span> script (
+    id            <span class="type">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+    category_id   <span class="type">INT</span> <span class="kw">REFERENCES</span> script_category(id) <span class="kw">ON DELETE</span> <span class="kw">CASCADE</span>,
+    title         <span class="type">VARCHAR</span>(128) <span class="kw">NOT NULL</span>,
+    content       <span class="type">TEXT</span> <span class="kw">NOT NULL</span>,
+    tags          <span class="type">VARCHAR</span>(256)[],
+    sort_order    <span class="type">INT</span> <span class="kw">DEFAULT</span> 0,
+    is_active     <span class="type">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">TRUE</span>,
+    use_count     <span class="type">INT</span> <span class="kw">DEFAULT</span> 0,
+    created_at    <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>(),
+    updated_at    <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>()
+);
+
+<span class="cmt">-- AI Prompt 模板表</span>
+<span class="kw">CREATE TABLE</span> ai_prompt_template (
+    id            <span class="type">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+    name          <span class="type">VARCHAR</span>(64) <span class="kw">NOT NULL</span>,
+    system_prompt <span class="type">TEXT</span> <span class="kw">NOT NULL</span>,
+    mode          <span class="type">VARCHAR</span>(16) <span class="kw">NOT NULL</span>,  <span class="cmt"><!-- polish / reply / generate --></span>
+    model         <span class="type">VARCHAR</span>(32) <span class="kw">DEFAULT</span> <span class="str">'deepseek-chat'</span>,
+    temperature   <span class="type">FLOAT</span> <span class="kw">DEFAULT</span> 0.7,
+    max_tokens    <span class="type">INT</span> <span class="kw">DEFAULT</span> 1024,
+    is_active     <span class="type">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">TRUE</span>,
+    created_at    <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>()
+);</code></pre>
+
+<h3>6.2 Android 端 Room 数据库</h3>
+<pre><code><span class="cmt">// 话术缓存表（从后端同步）</span>
+<span class="kw">@Entity</span>(tableName = <span class="str">"scripts"</span>)
+<span class="kw">data class</span> <span class="type">ScriptEntity</span>(
+    <span class="kw">@PrimaryKey</span> <span class="kw">val</span> id: <span class="type">Int</span>,
+    <span class="kw">val</span> categoryId: <span class="type">Int</span>,
+    <span class="kw">val</span> categoryName: <span class="type">String</span>,
+    <span class="kw">val</span> title: <span class="type">String</span>,
+    <span class="kw">val</span> content: <span class="type">String</span>,
+    <span class="kw">val</span> tags: <span class="type">List</span>&lt;<span class="type">String</span>&gt;,
+    <span class="kw">val</span> sortOrder: <span class="type">Int</span>,
+    <span class="kw">val</span> useCount: <span class="type">Int</span>,
+    <span class="kw">val</span> syncedAt: <span class="type">Long</span>
+)
+
+<span class="cmt">// 用户配置表</span>
+<span class="kw">@Entity</span>(tableName = <span class="str">"user_config"</span>)
+<span class="kw">data class</span> <span class="type">UserConfigEntity</span>(
+    <span class="kw">@PrimaryKey</span> <span class="kw">val</span> key: <span class="type">String</span>,
+    <span class="kw">val</span> value: <span class="type">String</span>
+)
+<span class="cmt">// 示例: ("server_url", "http://100.64.0.1:8000")
+//       ("last_sync", "1719600000000")
+//       ("ai_mode", "polish")</span></code></pre>
+
+<!-- ==================== API 设计 ==================== -->
+<h2>7. API 接口设计</h2>
+
+<p>后端API与原Phase1方案完全一致，此处仅标注与BiBI客户端对接的关键点：</p>
+
+<h3>7.1 话术管理 API</h3>
+<table>
+  <tr><th>方法</th><th>路径</th><th>功能</th><th>客户端对接</th></tr>
+  <tr>
+    <td><span class="api-method method-get">GET</span></td>
+    <td><code>/api/categories</code></td>
+    <td>获取所有分类</td>
+    <td>ScriptSyncService → Room缓存</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-get">GET</span></td>
+    <td><code>/api/scripts/all</code></td>
+    <td>全量同步话术</td>
+    <td>ScriptSyncService.startupSync() → 全量写入Room</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-get">GET</span></td>
+    <td><code>/api/scripts?category_id=&keyword=</code></td>
+    <td>查询话术</td>
+    <td>本地Room查询为主，后端仅做同步源</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-post">POST</span></td>
+    <td><code>/api/scripts/{id}/use</code></td>
+    <td>使用次数+1</td>
+    <td>一键输入话术时调用</td>
+  </tr>
+</table>
+
+<h3>7.2 AI 接口（SSE 流式）</h3>
+<table>
+  <tr><th>方法</th><th>路径</th><th>功能</th><th>客户端对接</th></tr>
+  <tr>
+    <td><span class="api-method method-sse">SSE</span></td>
+    <td><code>/api/ai/polish</code></td>
+    <td>AI文本润色</td>
+    <td>BiBI OkHttp SSE → AiPanelView流式渲染</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-sse">SSE</span></td>
+    <td><code>/api/ai/reply</code></td>
+    <td>AI自动回复</td>
+    <td>同上，mode=reply</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-sse">SSE</span></td>
+    <td><code>/api/ai/generate</code></td>
+    <td>AI文案生成</td>
+    <td>同上，mode=generate</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-get">GET</span></td>
+    <td><code>/api/ai/templates</code></td>
+    <td>获取AI模板列表</td>
+    <td>设置页展示可用Prompt模板</td>
+  </tr>
+</table>
+
+<div class="alert alert-blue">
+  <div class="alert-title">BiBI SSE 客户端优势</div>
+  <p>BiBI 已经有完整的 OkHttp SSE 流式客户端实现（在 <code>LlmPostProcessor</code> 中），你可以<strong>直接复用这段代码</strong>调用后端 SSE 接口，不需要从零写 SSE 客户端。Trime 方案需要从零开发这部分。</p>
+</div>
+
+<!-- ==================== 技术栈 ==================== -->
+<h2>8. 技术栈清单</h2>
+
+<h3>8.1 Android 端</h3>
+<table>
+  <tr><th>组件</th><th>选型</th><th>版本</th><th>来源</th></tr>
+  <tr><td>IME框架</td><td>BiBI AsrKeyboardService</td><td>最新main分支</td><td><span class="tag tag-teal">BiBI</span></td></tr>
+  <tr><td>拼音引擎</td><td>librime-android</td><td>最新AAR</td><td><span class="tag tag-purple">新增</span></td></tr>
+  <tr><td>语音引擎</td><td>sherpa-onnx + DeepSeek ASR</td><td>BiBI内置</td><td><span class="tag tag-teal">BiBI</span></td></tr>
+  <tr><td>LLM后处理</td><td>MarketingAIProcessor（改BiBI）</td><td>—</td><td><span class="tag tag-blue">改造</span></td></tr>
+  <tr><td>UI框架</td><td>Jetpack Compose + Material3</td><td>BiBI内置</td><td><span class="tag tag-teal">BiBI</span></td></tr>
+  <tr><td>本地数据库</td><td>Room</td><td>2.6+</td><td><span class="tag tag-purple">新增</span></td></tr>
+  <tr><td>网络</td><td>OkHttp（SSE支持）</td><td>4.12+</td><td><span class="tag tag-teal">BiBI</span></td></tr>
+  <tr><td>悬浮球</td><td>FloatingBallService</td><td>BiBI内置</td><td><span class="tag tag-teal">BiBI</span></td></tr>
+  <tr><td>语言</td><td>Kotlin 2.2</td><td>BiBI内置</td><td><span class="tag tag-teal">BiBI</span></td></tr>
+  <tr><td>最低SDK</td><td>Android 5.0</td><td>minSdk 21</td><td><span class="tag tag-teal">BiBI</span></td></tr>
+</table>
+
+<h3>8.2 后端（本地部署，与原方案一致）</h3>
+<table>
+  <tr><th>组件</th><th>选型</th><th>说明</th></tr>
+  <tr><td>语言/框架</td><td>Python 3.12 + FastAPI</td><td>异步、SSE原生支持</td></tr>
+  <tr><td>数据库</td><td>PostgreSQL 16（本地）</td><td>支持数组类型、全文搜索</td></tr>
+  <tr><td>网络穿透</td><td>Tailscale（免费）</td><td>手机随时随地访问本地后端</td></tr>
+  <tr><td>进程守护</td><td>PM2 或 NSSM</td><td>开机自启，崩溃自动重启</td></tr>
+  <tr><td>管理后台</td><td>HTML + Alpine.js</td><td>轻量管理界面</td></tr>
+  <tr><td>AI模型</td><td>DeepSeek V3 (deepseek-chat)</td><td>通用润色，性价比最高</td></tr>
+  <tr><td></td><td>DeepSeek R1 (deepseek-reasoner)</td><td>复杂回复，推理能力强</td></tr>
+</table>
+
+<!-- ==================== 开发步骤 ==================== -->
+<h2>9. 开发步骤（按顺序执行）</h2>
+
+<div class="phase-box phase-1">
+  <strong>核心原则：基于BiBI成熟框架，增量式改造，3周内装到自己手机上用起来</strong>
+</div>
+
+<div class="timeline">
+  <div class="timeline-item">
+    <div class="timeline-date">第 1 周</div>
+    <div class="timeline-title">环境搭建 + BiBI编译 + librime集成 + 本地后端</div>
+    <div class="timeline-desc">
+      <ul>
+        <li><strong>C1</strong>: Fork BiBI Keyboard，Clone 仓库，配置 NDK/CMake，编译出 debug APK</li>
+        <li><strong>C2</strong>: 引入 librime-android AAR，创建 RimeEngineBridge，验证拼音输入能工作</li>
+        <li><strong>C7</strong>: 砍掉8个不需要的ASR引擎，保留 sherpa-onnx + DeepSeek</li>
+        <li>电脑安装 PostgreSQL 16 + Python 3.12</li>
+        <li>FastAPI 项目初始化，<code>python main.py</code> 本地跑通</li>
+        <li>安装 Tailscale（电脑+手机），验证连通性</li>
+      </ul>
+    </div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">第 2 周</div>
+    <div class="timeline-title">后端API + 话术管理后台 + 键盘Tab框架</div>
+    <div class="timeline-desc">
+      <ul>
+        <li><strong>B1-B4</strong>: 话术CRUD API + AI代理SSE + 管理后台（复用原方案）</li>
+        <li><strong>C6</strong>: 改造 AsrKeyboardService，创建三Tab Compose容器</li>
+        <li><strong>C4</strong>: 新建 script/ 包，Room 数据库 + ScriptPanelView UI</li>
+        <li>配置 PM2/NSSM 进程守护</li>
+      </ul>
+    </div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">第 3 周</div>
+    <div class="timeline-title">AI营销模块 + 悬浮球增强 + 联调</div>
+    <div class="timeline-desc">
+      <ul>
+        <li><strong>C5</strong>: 改造 LlmPostProcessor → MarketingAIProcessor，3个Prompt模式</li>
+        <li>悬浮球增加「📋 话术」快捷入口</li>
+        <li>OkHttp SSE 客户端对接后端 <code>/api/ai/polish</code> 等</li>
+        <li>手机在不同网络下测试 Tailscale 连通性</li>
+        <li>端到端联调：拼音输入 → 话术选择 → AI润色 → 全链路打通</li>
+      </ul>
+    </div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">第 4-5 周（缓冲）</div>
+    <div class="timeline-title">打磨体验 + 填充话术数据 + 自用验证</div>
+    <div class="timeline-desc">
+      <ul>
+        <li>键盘UI细节打磨（动画、颜色、字体大小）</li>
+        <li>话术分类和内容填充（你的实际营销话术）</li>
+        <li>RIME 拼音方案调优（词频、模糊音等）</li>
+        <li>稳定性测试：长时间使用、内存泄漏检查</li>
+        <li>自用验证：日常使用中发现问题并修复</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 工时估算 ==================== -->
+<h2>10. 工时估算</h2>
+
+<h3>10.1 Android 端改造</h3>
+<table>
+  <tr><th>#</th><th>任务</th><th>工作内容</th><th>预估工时</th><th>风险</th></tr>
+  <tr><td>C1</td><td>Fork+编译BiBI</td><td>Clone、配置NDK/CMake、编译debug APK</td><td>1-2天</td><td><span class="tag tag-green">低</span></td></tr>
+  <tr><td>C2</td><td>集成librime-android</td><td>引入AAR、RimeEngineBridge、onKeyDown分发</td><td>3-5天</td><td><span class="tag tag-amber">中</span></td></tr>
+  <tr><td>C3</td><td>拼音候选词面板</td><td>Compose CandidateListView对接RIME候选</td><td>2-3天</td><td><span class="tag tag-green">低</span></td></tr>
+  <tr><td>C4</td><td>话术库模块</td><td>Room数据库、ScriptPanelView、分类Tab+搜索+一键输入</td><td>3-5天</td><td><span class="tag tag-green">低</span></td></tr>
+  <tr><td>C5</td><td>LLM→营销AI改造</td><td>改Prompt模板、对接DeepSeek SSE、3个模式</td><td>2-3天</td><td><span class="tag tag-green">低</span></td></tr>
+  <tr><td>C6</td><td>键盘Tab切换</td><td>三Tab Compose容器、Tab切换逻辑</td><td>2-3天</td><td><span class="tag tag-green">低</span></td></tr>
+  <tr><td>C7</td><td>ASR瘦身</td><td>砍掉8个引擎，保留sherpa-onnx+DeepSeek</td><td>1天</td><td><span class="tag tag-green">低</span></td></tr>
+  <tr><td colspan="3"><strong>Android端合计</strong></td><td><strong>13-21天</strong></td><td></td></tr>
+</table>
+
+<h3>10.2 后端端（与原方案一致）</h3>
+<table>
+  <tr><th>#</th><th>任务</th><th>预估工时</th></tr>
+  <tr><td>B1</td><td>项目骨架+本地环境</td><td>1天</td></tr>
+  <tr><td>B2</td><td>话术CRUD API</td><td>2-3天</td></tr>
+  <tr><td>B3</td><td>AI代理+SSE</td><td>2-3天</td></tr>
+  <tr><td>B4</td><td>话术管理后台</td><td>2-3天</td></tr>
+  <tr><td colspan="2"><strong>后端合计</strong></td><td><strong>6-9天</strong></td></tr>
+</table>
+
+<h3>10.3 总工时对比</h3>
+<table>
+  <tr><th>部分</th><th>BiBI路径</th><th>Trime路径（原方案）</th><th>节省</th></tr>
+  <tr><td>Android端</td><td>13-21天</td><td>13-21天</td><td>≈ 0（但质量更高）</td></tr>
+  <tr><td>后端端</td><td>6-9天</td><td>6-9天</td><td>≈ 0</td></tr>
+  <tr><td>联调测试</td><td>3-5天</td><td>3-5天</td><td>≈ 0</td></tr>
+  <tr><td>脱GPL迁移</td><td><strong>0天（不需要）</strong></td><td>15-23天</td><td><strong>15-23天</strong></td></tr>
+  <tr><td><strong>合计</strong></td><td><strong>19-31天（4-6周）</strong></td><td><strong>37-58天（7-13周）</strong></td><td><strong>省2-4周</strong></td></tr>
+</table>
+
+<div class="alert alert-green">
+  <div class="alert-title">工期优势</div>
+  <p>BiBI路径最核心的优势不是省了多少天Android开发，而是<strong>完全省掉了15-23天的脱GPL迁移工作</strong>。而且BiBI路径从第一天产出的就是Apache 2.0代码，可以直接商用；Trime路径产出的代码在Phase 2前都是GPL污染的。</p>
+</div>
+
+<!-- ==================== 风险评估 ==================== -->
+<h2>11. 风险评估与对策</h2>
+
+<table>
+  <tr><th>风险</th><th>等级</th><th>影响</th><th>对策</th></tr>
+  <tr>
+    <td>BiBI 编译失败（NDK/CMake 版本不匹配）</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>阻塞 1-3 天</td>
+    <td>BiBI 有完善CI/CD，严格按照文档配置；有问题可直接联系作者(BryceWG)</td>
+  </tr>
+  <tr>
+    <td>librime-android AAR 集成兼容问题</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>阻塞 2-3 天</td>
+    <td>librime-android 有社区维护的预编译AAR；先在独立测试App验证集成，再迁入BiBI</td>
+  </tr>
+  <tr>
+    <td>RIME引擎与BiBI键盘按键分发冲突</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>拼音模式与语音模式切换混乱</td>
+    <td>明确模式分发：拼音Tab→onKeyDown→RIME，语音按钮→ASR流程，互不干扰</td>
+  </tr>
+  <tr>
+    <td>Compose 键盘UI渲染性能</td>
+    <td><span class="tag tag-amber">低</span></td>
+    <td>键盘响应延迟</td>
+    <td>BiBI已在生产环境验证Compose键盘性能；话术/AI面板在非高频操作场景，性能压力小</td>
+  </tr>
+  <tr>
+    <td>IME中获取输入框选中文本困难</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>AI润色无法获取原文</td>
+    <td>用 InputConnection.getSelectedText()；Phase 1 可让用户在AI面板手动粘贴文本</td>
+  </tr>
+  <tr>
+    <td>DeepSeek API 不稳定</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>AI功能不可用</td>
+    <td>后端加重试+超时；可选备用模型（通义千问免费额度）</td>
+  </tr>
+  <tr>
+    <td>电脑关机导致后端不可用</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>手机无法使用AI功能</td>
+    <td>设置电脑不休眠+PM2开机自启；Phase 2迁移上云后消除</td>
+  </tr>
+  <tr>
+    <td>sherpa-onnx本地ASR模型体积(50-100MB)</td>
+    <td><span class="tag tag-amber">低</span></td>
+    <td>APK体积增大</td>
+    <td>Phase 1先只用云端ASR，本地模型Phase 2按需下载</td>
+  </tr>
+</table>
+
+<div class="alert alert-green">
+  <div class="alert-title">风险对比：BiBI路径 vs Trime路径</div>
+  <table style="font-size:13px; margin-top:8px;">
+    <tr><th>风险项</th><th>BiBI路径</th><th>Trime路径</th></tr>
+    <tr><td>GPL法律风险</td><td><span class="tag tag-green">无</span></td><td><span class="tag tag-red">高</span>（Phase 2前必须迁移）</td></tr>
+    <tr><td>编译风险</td><td><span class="tag tag-amber">中</span>（有CI/CD兜底）</td><td><span class="tag tag-red">高</span>（Trime编译 notoriously困难）</td></tr>
+    <tr><td>YAML布局灵活性</td><td><span class="tag tag-green">Compose灵活</span></td><td><span class="tag tag-amber">YAML受限</span></td></tr>
+    <tr><td>IME框架成熟度</td><td><span class="tag tag-green">BiBI已有</span></td><td><span class="tag tag-amber">Trime自有需定制</span></td></tr>
+  </table>
+</div>
+
+<!-- ==================== Phase 2 迁移 ==================== -->
+<h2>12. Phase 2 迁移路径（本地上云）</h2>
+
+<div class="alert alert-teal">
+  <div class="alert-title">BiBI路径的Phase 2只需要做一件事：本地上云</div>
+  <p>因为从Day 1就是Apache 2.0，<strong>不需要脱GPL</strong>。Phase 2只需要把后端从本地迁移到云服务器，App端改一行配置。</p>
+</div>
+
+<table>
+  <tr><th>步骤</th><th>工作内容</th><th>预估工时</th></tr>
+  <tr><td>1</td><td>购买云服务器（2核4G）+ 域名 + ICP 备案</td><td>1-2周（备案审核）</td></tr>
+  <tr><td>2</td><td>服务器部署 FastAPI + PostgreSQL</td><td>0.5天</td></tr>
+  <tr><td>3</td><td>配置 Nginx + HTTPS 证书</td><td>0.5天</td></tr>
+  <tr><td>4</td><td>App端修改 <code>BASE_URL</code></td><td>5分钟</td></tr>
+  <tr><td>5</td><td>数据迁移：本地PostgreSQL → 云PostgreSQL</td><td>1小时</td></tr>
+  <tr><td><strong>合计</strong></td><td>代码零改动</td><td><strong>1天 + 备案等待</strong></td></tr>
+</table>
+
+<div class="alert alert-green">
+  <div class="alert-title">对比原Trime方案的Phase 2</div>
+  <p><strong>Trime路径Phase 2</strong>：脱GPL迁移(15-23天) + 本地上云(1天) = 16-24天</p>
+  <p><strong>BiBI路径Phase 2</strong>：仅本地上云(1天) = <strong>1天</strong></p>
+  <p>省掉的是整个脱GPL迁移步骤，这才是BiBI路径最大的价值。</p>
+</div>
+
+<!-- ==================== 成本汇总 ==================== -->
+<h2>13. Phase 1 成本汇总（本地部署）</h2>
+
+<table>
+  <tr><th>项目</th><th>一次性费用</th><th>月运营</th><th>说明</th></tr>
+  <tr><td>云服务器</td><td>—</td><td><strong>¥0</strong></td><td>用你自己的电脑</td></tr>
+  <tr><td>域名</td><td>—</td><td><strong>¥0</strong></td><td>用Tailscale IP</td></tr>
+  <tr><td>ICP备案</td><td>—</td><td><strong>¥0</strong></td><td>不需要</td></tr>
+  <tr><td>HTTPS证书</td><td>—</td><td><strong>¥0</strong></td><td>内网直连</td></tr>
+  <tr><td>Tailscale</td><td>—</td><td><strong>¥0</strong></td><td>个人版免费</td></tr>
+  <tr><td>DeepSeek API</td><td>—</td><td>¥1-10</td><td>自用量极小</td></tr>
+  <tr><td>PostgreSQL</td><td>—</td><td>¥0</td><td>开源免费，本地安装</td></tr>
+  <tr><td>BiBI Keyboard源码</td><td>—</td><td>¥0</td><td>Apache 2.0，免费使用</td></tr>
+  <tr><td>librime-android AAR</td><td>—</td><td>¥0</td><td>BSD许可证，免费使用</td></tr>
+  <tr><td><strong>合计</strong></td><td><strong>≈ ¥0</strong></td><td><strong>≈ ¥1-10/月</strong></td><td>仅DeepSeek API调用费</td></tr>
+</table>
+
+<!-- ==================== 总结 ==================== -->
+<h2>14. 总结</h2>
+
+<div class="card" style="background:linear-gradient(135deg,#f0fdfa,#eeedfe);border:1px solid #99f6e4">
+  <h3 style="margin-top:0;color:#0D9488">BiBI Keyboard 路径 vs Trime 路径 — 最终对比</h3>
+  <table style="font-size:14px;">
+    <tr><th>维度</th><th>🟢 BiBI路径（本方案）</th><th>🔴 Trime路径（原方案）</th></tr>
+    <tr><td>许可证</td><td><strong>Apache 2.0</strong> — Day 1可商用</td><td>GPL-3.0 — Phase 2前不可商用</td></tr>
+    <tr><td>总工期</td><td><strong>4-6周</strong>（含缓冲）</td><td><strong>7-13周</strong>（含脱GPL）</td></tr>
+    <tr><td>Phase 2迁移</td><td><strong>1天</strong>（仅上云）</td><td><strong>16-24天</strong>（脱GPL+上云）</td></tr>
+    <tr><td>IME框架</td><td>BiBI已有，Compose现代化</td><td>Trime自有，YAML配置受限</td></tr>
+    <tr><td>AI集成</td><td>已有LLM后处理→改Prompt即可</td><td>从零开发SSE+LLM对接</td></tr>
+    <tr><td>语音输入</td><td>✅ 免费（sherpa-onnx本地）</td><td>❌ Phase 1砍掉</td></tr>
+    <tr><td>悬浮球</td><td>✅ 跨应用使用</td><td>❌ Phase 1不含</td></tr>
+    <tr><td>月成本</td><td>¥1-10</td><td>¥1-10</td></tr>
+    <tr><td>法律风险</td><td><span class="tag tag-green">零风险</span></td><td><span class="tag tag-red">GPL定时炸弹</span></td></tr>
+  </table>
+</div>
+
+<div class="alert alert-teal">
+  <div class="alert-title">最终建议</div>
+  <p><strong>选择 BiBI Keyboard 路径</strong>。理由总结：</p>
+  <ul>
+    <li>🟢 <strong>省2-4周工期</strong>（4-6周 vs 7-13周）</li>
+    <li>🟢 <strong>从Day 1零法律风险</strong>（Apache 2.0 vs GPL-3.0定时炸弹）</li>
+    <li>🟢 <strong>技术栈更现代</strong>（Compose vs YAML配置）</li>
+    <li>🟢 <strong>免费获得语音+悬浮球</strong>（Trime方案Phase 1砍掉了这两项）</li>
+    <li>🟢 <strong>Phase 2迁移仅1天</strong>（vs Trime的16-24天脱GPL）</li>
+    <li>🟢 <strong>代码质量更高</strong>（1,045次提交、CI/CD、ktlint规范 vs Trime古老架构）</li>
+  </ul>
+  <p>唯一新增的工作是集成 librime-android 拼音引擎（3-5天），但这本来就是 Phase 2 的核心任务，现在提前做而已，且 librime-android 是 BSD 许可证，无任何法律风险。</p>
+</div>
+
+<div class="card" style="margin-top:24px;">
+  <h3 style="margin-top:0;">下一步行动</h3>
+  <ol>
+    <li><strong>Fork BiBI Keyboard</strong>：访问 <code>https://github.com/BryceWG/BiBi-Keyboard</code>，点击 Fork</li>
+    <li><strong>Clone 到本地</strong>：<code>git clone https://github.com/你的用户名/BiBi-Keyboard.git</code></li>
+    <li><strong>编译验证</strong>：Android Studio 打开项目，编译出 debug APK</li>
+    <li><strong>安装到手机</strong>：验证基础语音输入功能正常</li>
+    <li><strong>开始改造</strong>：按第9章的开发步骤顺序执行</li>
+  </ol>
+</div>
+
+<footer style="text-align:center; color:var(--text3); font-size:13px; margin-top:40px; padding-top:20px; border-top:1px solid var(--border);">
+  <p>本方案基于 BiBI Keyboard 源码分析 + 原 Phase 1 方案设计综合制定。</p>
+  <p>基础项目：BiBi Keyboard (BryceWG/BiBi-Keyboard, Apache 2.0)</p>
+  <p>生成时间：2026-06-29</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+# RIME 默认配置 - AI营销输入法
+# 基于 librime-android
+
+# 方案列表
+schema_list:
+  - schema: double_pinyin_flypy  # 小鹤双拼（默认）
+
+# 菜单样式
+menu:
+  page_size: 9          # 每页 9 个候选
+  alternative_select_labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+  alternative_select_keys: "123456789"
+
+# 编码方式
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: ["中文", "英文"]
+  - name: full_shape
+    reset: 0
+    states: ["半角", "全角"]
+  - name: ascii_punct
+    reset: 0
+    states: ["，。", ",."]
+
+# 引擎组件
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - table_translator
+    - history_translator
+  filters:
+    - simplifier
+    - uniquifier

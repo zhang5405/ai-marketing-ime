@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APK 逆向拆解报告 · 思语助手 (com.yiweiyidou.siyuzhushou.toc)</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#fff; --border:#e6e8eb; --text:#1a1a1a; --muted:#6b7280;
+    --primary:#2563eb; --primary-bg:#eff6ff; --green:#059669; --green-bg:#ecfdf5;
+    --red:#dc2626; --red-bg:#fef2f2; --amber:#d97706; --amber-bg:#fffbeb;
+    --code-bg:#f3f4f6; --tag:#eef2ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.7;font-size:15px;padding:0}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 64px}
+  header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:40px 32px;border-radius:16px;margin-bottom:28px;box-shadow:0 8px 32px rgba(37,99,235,.18)}
+  header h1{font-size:26px;margin-bottom:6px}
+  header .sub{opacity:.85;font-size:15px}
+  header .badges{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+  header .badge{background:rgba(255,255,255,.18);padding:4px 12px;border-radius:20px;font-size:13px;backdrop-filter:blur(4px)}
+  h2{font-size:20px;margin:32px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--primary);display:flex;align-items:center;gap:8px}
+  h2 .num{background:var(--primary);color:#fff;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+  h3{font-size:16px;margin:18px 0 10px;color:#374151}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  @media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
+  .kv{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed #f0f0f0;font-size:14px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted);min-width:120px;flex-shrink:0}
+  .kv .v{word-break:break-all}
+  .mono{font-family:"SF Mono",Consolas,"Courier New",monospace;font-size:13px;background:var(--code-bg);padding:1px 6px;border-radius:4px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+  th{background:#f9fafb;font-weight:600;color:#374151;white-space:nowrap}
+  td.mono{background:transparent;padding:8px 10px}
+  .tag{display:inline-block;background:var(--tag);color:#3730a3;padding:2px 10px;border-radius:12px;font-size:12px;margin:2px}
+  .tag.green{background:var(--green-bg);color:var(--green)}
+  .tag.red{background:var(--red-bg);color:var(--red)}
+  .tag.amber{background:var(--amber-bg);color:var(--amber)}
+  .tag.blue{background:var(--primary-bg);color:var(--primary)}
+  .alert{border-radius:10px;padding:12px 16px;margin:8px 0;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+  .alert.red{background:var(--red-bg);border:1px solid #fecaca;color:#991b1b}
+  .alert.amber{background:var(--amber-bg);border:1px solid #fde68a;color:#92400e}
+  .alert.green{background:var(--green-bg);border:1px solid #a7f3d0;color:#065f46}
+  .bar{height:22px;border-radius:4px;display:flex;align-items:center;padding-left:8px;color:#fff;font-size:12px;font-weight:600;min-width:40px}
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:13px;background:#f3f4f6}
+  .section-desc{color:var(--muted);font-size:14px;margin-bottom:12px}
+  .code-block{background:#1e293b;color:#e2e8f0;padding:14px 16px;border-radius:8px;font-family:Consolas,monospace;font-size:13px;overflow-x:auto;margin:8px 0}
+  .toc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:24px}
+  .toc a{color:var(--primary);text-decoration:none;font-size:14px;display:block;padding:3px 0}
+  .toc a:hover{text-decoration:underline}
+  .stat{text-align:center;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+  .stat .n{font-size:24px;font-weight:700;color:var(--primary)}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  footer{text-align:center;color:var(--muted);font-size:13px;margin-top:40px;padding-top:20px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>APK 逆向拆解报告</h1>
+  <div class="sub">思语助手 · com.yiweiyidou.siyuzhushou.toc (ToC 消费者版) · 一苇一豆（杭州）</div>
+  <div class="badges">
+    <span class="badge">v1.3.7 (build 132)</span>
+    <span class="badge">构建于 2026-06-18</span>
+    <span class="badge">AI 输入法</span>
+    <span class="badge">216.5 MB</span>
+    <span class="badge">31,632 个类</span>
+  </div>
+</header>
+
+<div class="toc">
+  <strong>目录</strong>
+  <a href="#s1">1. 应用概览与文件指纹</a>
+  <a href="#s2">2. 包结构体积分布</a>
+  <a href="#s3">3. AndroidManifest 权限与组件</a>
+  <a href="#s4">4. 签名与安全配置</a>
+  <a href="#s5">5. 原生库 (Native Libraries)</a>
+  <a href="#s6">6. 词典数据库分析</a>
+  <a href="#s7">7. 第三方 SDK 全景</a>
+  <a href="#s8">8. 网络与 API 基础设施</a>
+  <a href="#s9">9. 业务架构与功能拆解</a>
+  <a href="#s10">10. 技术栈画像</a>
+  <a href="#s11">11. 安全风险评估</a>
+  <a href="#s12">12. 拆解结论</a>
+</div>
+
+<!-- 1. 应用概览 -->
+<h2 id="s1"><span class="num">1</span>应用概览与文件指纹</h2>
+<div class="grid g2">
+  <div class="card">
+    <div class="kv"><span class="k">应用名称</span><span class="v">思语助手</span></div>
+    <div class="kv"><span class="k">包名</span><span class="v mono">com.yiweiyidou.siyuzhushou.toc</span></div>
+    <div class="kv"><span class="k">版本号</span><span class="v">1.3.7 (versionCode 132)</span></div>
+    <div class="kv"><span class="k">最小 SDK</span><span class="v">26 (Android 8.0)</span></div>
+    <div class="kv"><span class="k">目标 SDK</span><span class="v">36 (Android 16)</span></div>
+    <div class="kv"><span class="k">编译 SDK</span><span class="v">36 / Codename 16</span></div>
+    <div class="kv"><span class="k">构建时间</span><span class="v">2026-06-18 08:53 CST</span></div>
+    <div class="kv"><span class="k">开发主体</span><span class="v">一苇一豆 (yiweiyidou) · 杭州</span></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">文件指纹</h3>
+    <div class="kv"><span class="k">文件大小</span><span class="v mono">227,022,397 bytes (216.51 MB)</span></div>
+    <div class="kv"><span class="k">MD5</span><span class="v mono">e43790e98ca0dafccc0e9d622bea63d1</span></div>
+    <div class="kv"><span class="k">SHA1</span><span class="v mono">29ef179c6309499a87ca103e84abf6d156582694</span></div>
+    <div class="kv"><span class="k">SHA256</span><span class="v mono" style="font-size:11px">fe3ea005cf06b4da39553e9f69130e5b8f84e1ec1cab26371280e36ee85426d8</span></div>
+    <div class="kv"><span class="k">总文件数</span><span class="v">2,571</span></div>
+    <div class="kv"><span class="k">DEX 文件</span><span class="v">4 个 (multidex)</span></div>
+    <div class="kv"><span class="k">ABI 架构</span><span class="v">arm64-v8a / armeabi-v7a / x86 / x86_64</span></div>
+  </div>
+</div>
+
+<!-- 2. 体积分布 -->
+<h2 id="s2"><span class="num">2</span>包结构体积分布</h2>
+<div class="card">
+  <p class="section-desc">216MB 的体积主要由加密词典数据库贡献，这是输入法类应用的典型特征。</p>
+  <table>
+    <thead><tr><th>组成部分</th><th>体积</th><th>占比</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>assets/databases/</strong></td><td class="mono">156 MB</td><td>72.3%</td><td>输入法词典库（含 151MB 加密主词典）</td></tr>
+      <tr><td>classes*.dex</td><td class="mono">39 MB</td><td>18.1%</td><td>4 个 DEX，31,632 个类</td></tr>
+      <tr><td>res/ + resources.arsc</td><td class="mono">48 MB</td><td>22.2%</td><td>资源（图片/布局/字符串，名称已混淆）</td></tr>
+      <tr><td>lib/</td><td class="mono">32 MB</td><td>14.8%</td><td>4 套 ABI 原生库</td></tr>
+      <tr><td>META-INF/</td><td class="mono">979 KB</td><td>0.4%</td><td>v1+v2+v3 签名</td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:14px">
+    <div style="display:flex;gap:2px;margin-bottom:4px">
+      <div class="bar" style="background:#2563eb;width:72.3%">词典 72%</div>
+    </div>
+    <div style="display:flex;gap:2px;margin-bottom:4px">
+      <div class="bar" style="background:#7c3aed;width:18.1%">DEX 18%</div>
+      <div class="bar" style="background:#059669;width:22.2%">资源 22%</div>
+    </div>
+    <div style="display:flex;gap:2px">
+      <div class="bar" style="background:#d97706;width:14.8%">lib 15%</div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Manifest -->
+<h2 id="s3"><span class="num">3</span>AndroidManifest 权限与组件</h2>
+<div class="grid g2">
+  <div class="card">
+    <h3 style="margin-top:0">权限清单 (19 项)</h3>
+    <table>
+      <thead><tr><th>权限</th><th>用途推断</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">INTERNET</td><td>网络通信</td></tr>
+        <tr><td class="mono">ACCESS_NETWORK_STATE</td><td>网络状态检测</td></tr>
+        <tr><td class="mono">ACCESS_WIFI_STATE</td><td>WiFi 状态</td></tr>
+        <tr><td class="mono">RECORD_AUDIO</td><td>🎤 语音输入</td></tr>
+        <tr><td class="mono">READ/WRITE_USER_DICTIONARY</td><td>用户词典读写</td></tr>
+        <tr><td class="mono">READ/WRITE_EXTERNAL_STORAGE</td><td>存储读写</td></tr>
+        <tr><td class="mono">MANAGE_EXTERNAL_STORAGE</td><td>所有文件管理</td></tr>
+        <tr><td class="mono">SYSTEM_ALERT_WINDOW</td><td>💧 悬浮窗</td></tr>
+        <tr><td class="mono">SYSTEM_OVERLAY_WINDOW</td><td>覆盖层窗口</td></tr>
+        <tr><td class="mono">WRITE_SETTINGS</td><td>修改系统设置</td></tr>
+        <tr><td class="mono">VIBRATE</td><td>触觉反馈</td></tr>
+        <tr><td class="mono">WAKE_LOCK</td><td>保持唤醒</td></tr>
+        <tr><td class="mono">RECEIVE_BOOT_COMPLETED</td><td>开机启动</td></tr>
+        <tr><td class="mono">REQUEST_INSTALL_PACKAGES</td><td>📦 应用内更新</td></tr>
+        <tr><td class="mono">FOREGROUND_SERVICE</td><td>前台服务</td></tr>
+        <tr><td class="mono">REORDER_TASKS</td><td>任务重排</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">四大组件统计</h3>
+    <div class="grid g2" style="margin-bottom:14px">
+      <div class="stat"><div class="n">36</div><div class="l">Activities</div></div>
+      <div class="stat"><div class="n">10</div><div class="l">Services</div></div>
+      <div class="stat"><div class="n">9</div><div class="l">Receivers</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">Providers</div></div>
+    </div>
+    <h3>核心组件</h3>
+    <div class="kv"><span class="k">入口 Activity</span><span class="v mono" style="font-size:12px">.toc.MainTabActivity</span></div>
+    <div class="kv"><span class="k">IME 服务 ⌨️</span><span class="v mono" style="font-size:12px">.YiBoInputMethodService</span></div>
+    <div class="kv"><span class="k">悬浮窗服务</span><span class="v mono" style="font-size:12px">.service.FloatingViewService</span></div>
+    <div class="kv"><span class="k">微信登录</span><span class="v mono" style="font-size:12px">.wxapi.WXEntryActivity</span></div>
+    <div class="kv"><span class="k">微信支付</span><span class="v mono" style="font-size:12px">.wxapi.WXPayEntryActivity</span></div>
+    <div class="kv"><span class="k">Application</span><span class="v mono" style="font-size:12px">.App</span></div>
+  </div>
+</div>
+<div class="card">
+  <h3>导出的业务 Activity（可被外部深链调起）</h3>
+  <div class="section-desc">大量业务页面被设为 exported=true，包括企业资料、成员管理、邀请收益、VIP、AI Agent 等。</div>
+  <div>
+    <span class="tag blue">企业资料 UserInfoActivity</span>
+    <span class="tag blue">企业成员管理 ReplyShareAct</span>
+    <span class="tag blue">邀请收入 IncomeActivity</span>
+    <span class="tag blue">邀请记录 InvitationRecordAct</span>
+    <span class="tag blue">VIP 会员 VIPActivity</span>
+    <span class="tag blue">聊天 VIP ChatVIPAct</span>
+    <span class="tag blue">皮肤 SkinAct</span>
+    <span class="tag blue">文章列表 ArticleListAct</span>
+    <span class="tag blue">AI Agent AIAgentAct</span>
+    <span class="tag blue">AI Agent 编辑 AIAgentEditAct</span>
+    <span class="tag blue">企业文章设置 CommpanyArticleSettingAct</span>
+    <span class="tag blue">企业文章列表 CompanyArticleListAct</span>
+    <span class="tag blue">企业文章编辑 CompanyArticleEditAct</span>
+    <span class="tag blue">自定义底栏 CustomTabBarAct</span>
+    <span class="tag blue">其他设置 SettingsOtherAct</span>
+    <span class="tag blue">成员活动 MemberRelaActivesAct</span>
+    <span class="tag blue">分享回复 ReplyShareAct</span>
+    <span class="tag red">⚠ 测试 Activity 残留 (3个)</span>
+  </div>
+</div>
+
+<!-- 4. 签名 -->
+<h2 id="s4"><span class="num">4</span>签名与安全配置</h2>
+<div class="grid g2">
+  <div class="card">
+    <h3 style="margin-top:0">签名方案</h3>
+    <div class="kv"><span class="k">v1 (JAR)</span><span class="v"><span class="tag green">✓ 已签名</span></span></div>
+    <div class="kv"><span class="k">v2 (APK)</span><span class="v"><span class="tag green">✓ 已签名</span></span></div>
+    <div class="kv"><span class="k">v3 (密钥轮换)</span><span class="v"><span class="tag green">✓ 已签名</span></span></div>
+    <h3>签名证书</h3>
+    <div class="kv"><span class="k">Subject</span><span class="v mono" style="font-size:12px">CN=wdd, OU=ywyd, O=yiweiyidou, L=hangzhou, ST=zhejiang, C=86</span></div>
+    <div class="kv"><span class="k">签发者</span><span class="v">自签名 (Subject == Issuer)</span></div>
+    <div class="kv"><span class="k">序列号</span><span class="v mono">0x1</span></div>
+    <div class="kv"><span class="k">有效期</span><span class="v">2025-04-22 ～ 2075-04-10 (50年)</span></div>
+    <div class="kv"><span class="k">算法</span><span class="v">RSA</span></div>
+    <div class="kv"><span class="k">Cert SHA256</span><span class="v mono" style="font-size:11px">2048dce6...dc519477</span></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Application 安全属性</h3>
+    <table>
+      <thead><tr><th>属性</th><th>值</th><th>风险</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">debuggable</td><td>未设置(false)</td><td><span class="tag green">正常</span></td></tr>
+        <tr><td class="mono">allowBackup</td><td>true</td><td><span class="tag amber">中</span></td></tr>
+        <tr><td class="mono">usesCleartextTraffic</td><td>true</td><td><span class="tag red">高</span></td></tr>
+        <tr><td class="mono">networkSecurityConfig</td><td>未配置</td><td><span class="tag amber">中</span></td></tr>
+        <tr><td class="mono">requestLegacyExternalStorage</td><td>true</td><td><span class="tag amber">兼容</span></td></tr>
+        <tr><td class="mono">extractNativeLibs</td><td>false</td><td><span class="tag green">正常</span></td></tr>
+        <tr><td class="mono">largeHeap</td><td>true</td><td><span class="tag blue">大内存</span></td></tr>
+      </tbody>
+    </table>
+    <div class="alert amber" style="margin-top:12px">
+      <span>⚠️</span>
+      <div><strong>明文流量未禁用</strong>：usesCleartextTraffic=true 且无 networkSecurityConfig，应用允许 HTTP 明文通信，存在中间人攻击风险。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. 原生库 -->
+<h2 id="s5"><span class="num">5</span>原生库 (Native Libraries)</h2>
+<div class="card">
+  <p class="section-desc">4 套 ABI 完全一致，共 4 个 so 文件。核心是手写识别引擎和加密数据库引擎。</p>
+  <table>
+    <thead><tr><th>so 文件</th><th>arm64 大小</th><th>功能</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">libdigitalink.so</td><td class="mono">4.5 MB</td><td>✍️ 手写笔画识别引擎</td><td>Google ML Kit Digital Ink</td></tr>
+      <tr><td class="mono">libsqlcipher.so</td><td class="mono">3.5 MB</td><td>🔐 加密 SQLite 引擎</td><td>SQLCipher (开源)</td></tr>
+      <tr><td class="mono">libqcloud_asr_realtime.so</td><td class="mono">362 KB</td><td>🎤 实时语音识别</td><td>腾讯云 ASR</td></tr>
+      <tr><td class="mono">libandroidx.graphics.path.so</td><td class="mono">9.9 KB</td><td>图形路径计算</td><td>AndroidX</td></tr>
+    </tbody>
+  </table>
+  <div class="grid g4" style="grid-template-columns:repeat(4,1fr);margin-top:14px">
+    <div class="stat"><div class="n" style="font-size:18px">arm64-v8a</div><div class="l">8.3 MB</div></div>
+    <div class="stat"><div class="n" style="font-size:18px">armeabi-v7a</div><div class="l">5.0 MB</div></div>
+    <div class="stat"><div class="n" style="font-size:18px">x86</div><div class="l">8.8 MB</div></div>
+    <div class="stat"><div class="n" style="font-size:18px">x86_64</div><div class="l">9.3 MB</div></div>
+  </div>
+</div>
+
+<!-- 6. 数据库 -->
+<h2 id="s6"><span class="num">6</span>词典数据库分析</h2>
+<div class="card">
+  <p class="section-desc">输入法的核心资产是词典。4 个数据库中，主词典使用 SQLCipher 加密保护 IP，其余为明文。</p>
+  <table>
+    <thead><tr><th>数据库</th><th>大小</th><th>加密</th><th>表结构</th><th>行数</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono">xiaoguandb.db</td><td class="mono">151 MB</td>
+        <td><span class="tag red">🔐 SQLCipher</span></td>
+        <td>未知(加密)</td><td>—</td>
+        <td><strong>主词典</strong>（拼音/词组/整句）</td>
+      </tr>
+      <tr>
+        <td class="mono">englishletter.db</td><td class="mono">10.5 MB</td>
+        <td><span class="tag green">明文</span></td>
+        <td class="mono">EnglishLetter(id,letter,freq)</td>
+        <td>111,446</td>
+        <td>英文词频预测</td>
+      </tr>
+      <tr>
+        <td class="mono">stroke.db</td><td class="mono">1.5 MB</td>
+        <td><span class="tag green">明文</span></td>
+        <td class="mono">Stroke(stroke,letter,pinyin,freq)</td>
+        <td>15,873</td>
+        <td>笔画输入（如32511354→的）</td>
+      </tr>
+      <tr>
+        <td class="mono">correction.db</td>
+        <td class="mono">74 KB</td>
+        <td><span class="tag green">明文</span></td>
+        <td class="mono">CorrectionLetter(keyword,replace)</td>
+        <td>1,205</td>
+        <td>自动纠错（如 tw→tm）</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert green">
+    <span>💡</span>
+    <div>所有数据库均使用 <strong>Room ORM</strong>（检测到 room_master_table），主词典 <strong>xiaoguandb.db</strong> 以 SQLCipher 加密——这是输入法厂商保护核心词库 IP 的标准做法。密钥很可能硬编码或派生自设备信息，存于 DEX/Native 层。</div>
+  </div>
+</div>
+
+<!-- 7. SDK -->
+<h2 id="s7"><span class="num">7</span>第三方 SDK 全景</h2>
+<div class="card">
+  <table>
+    <thead><tr><th>SDK</th><th>类数</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td>AndroidX 全家桶</td><td class="mono">15,130</td><td>AppCompat / Compose / Room / WorkManager / Lifecycle</td></tr>
+      <tr><td>Google GMS / ML Kit</td><td class="mono">5,288</td><td>Play Services + 手写识别 (Digital Ink 18.1.0)</td></tr>
+      <tr><td>Kotlin Stdlib + Coroutines</td><td class="mono">2,548</td><td>主要开发语言 Kotlin，协程异步</td></tr>
+      <tr><td>Apache Commons</td><td class="mono">1,845</td><td>OpenCSV（话术 CSV 导入导出）</td></tr>
+      <tr><td>腾讯云 SDK</td><td class="mono">1,671</td><td>COS 对象存储 + QCloud Core + ASR 语音</td></tr>
+      <tr><td>Glide</td><td class="mono">747</td><td>图片加载</td></tr>
+      <tr><td>OkHttp</td><td class="mono">334</td><td>HTTP 客户端</td></tr>
+      <tr><td>微信开放平台 SDK</td><td class="mono">227</td><td>微信登录 / 支付 / 分享</td></tr>
+      <tr><td>Retrofit</td><td class="mono">118</td><td>RESTful API 客户端</td></tr>
+      <tr><td>Okio</td><td class="mono">110</td><td>I/O 抽象层</td></tr>
+    </tbody>
+  </table>
+  <h3>其他检测到的库（来自 BuildConfig）</h3>
+  <div>
+    <span class="tag">net.sqlcipher (加密DB)</span>
+    <span class="tag">com.tencent.cos.xml (COS)</span>
+    <span class="tag">com.andyliu.compose_wheel_picker</span>
+    <span class="tag red">org.zhx.common.bgstart.library (后台启动)</span>
+    <span class="tag">androidx.multidex</span>
+    <span class="tag">Firebase Components</span>
+    <span class="tag">Google Data Transport (CCT)</span>
+  </div>
+</div>
+
+<!-- 8. 网络 -->
+<h2 id="s8"><span class="num">8</span>网络与 API 基础设施</h2>
+<div class="grid g2">
+  <div class="card">
+    <h3 style="margin-top:0">业务域名</h3>
+    <table>
+      <thead><tr><th>域名</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">api.siyuzhushou.com</td><td>主 API 服务</td></tr>
+        <tr><td class="mono">api-x.siyuzhushou.com</td><td>扩展 API</td></tr>
+        <tr><td class="mono">system.siyuzhushou.com</td><td>系统服务</td></tr>
+        <tr><td class="mono">bebu.vip</td><td>公告 NoticeApi</td></tr>
+        <tr><td class="mono">fengdada.cn</td><td>测试环境 (iot-app-test)</td></tr>
+        <tr><td class="mono">asr.cloud.tencent.com</td><td>腾讯云 ASR 语音识别</td></tr>
+        <tr><td class="mono">car-1303843246.cos.ap-beijing.myqcloud.com</td><td>腾讯云 COS（文件/模板存储）</td></tr>
+        <tr><td class="mono">wsurl.cc</td><td>短链接服务</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">关键凭证 / 标识</h3>
+    <div class="kv"><span class="k">微信 AppID</span><span class="v mono">wxdb80d96030456e07</span></div>
+    <div class="kv"><span class="k">腾讯云 APPID</span><span class="v mono">1303843246</span></div>
+    <div class="kv"><span class="k">COS Bucket</span><span class="v mono">car-1303843246 (ap-beijing)</span></div>
+    <div class="kv"><span class="k">API 框架</span><span class="v">Retrofit + OkHttp</span></div>
+    <div class="kv"><span class="k">数据序列化</span><span class="v">Gson</span></div>
+    <h3>COS 存储内容示例</h3>
+    <div class="code-block">分类话术导入模版.txt
+upload/20251210/81d4cb1c....png
+upload/20251211/fbc47d70....png</div>
+    <p style="font-size:13px;color:var(--muted);margin-top:6px">COS 中存储话术导入模板和运营素材图片。</p>
+  </div>
+</div>
+
+<!-- 9. 业务架构 -->
+<h2 id="s9"><span class="num">9</span>业务架构与功能拆解</h2>
+<div class="card">
+  <h3>核心定位：营销型 AI 输入法</h3>
+  <p class="section-desc">这不是普通输入法，而是一款面向<strong>营销/销售场景</strong>的 AI 输入法，核心价值是"边打字边营销"——在键盘中集成话术库、AI 自动回复、场景化推荐，并通过 B2B2C 模式（企业配置→成员使用）+ 分销体系变现。</p>
+  
+  <h3>键盘 Tab 功能矩阵</h3>
+  <table>
+    <thead><tr><th>Tab</th><th>功能</th></tr></thead>
+    <tbody>
+      <tr><td>🤖 TabAIAgent</td><td>AI 智能体——根据对方消息自动生成回复</td></tr>
+      <tr><td>💬 TabChat</td><td>话术聊天——预设话术库一键发送</td></tr>
+      <tr><td>🎯 TabActive</td><td>活动——营销活动/促销话术</td></tr>
+      <tr><td>⚙️ TabCustomKeyboard</td><td>自定义键盘——企业定制按键</td></tr>
+      <tr><td>👤 TabAccount</td><td>账户——会员/收益/企业设置</td></tr>
+      <tr><td>📖 TabAIIntro</td><td>AI 引导——营销模式/Chat模式开关</td></tr>
+      <tr><td>🖼️ TabPicture</td><td>图片——表情/图片素材</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <h3 style="margin-top:0">输入能力（5 种）</h3>
+    <div>
+      <span class="tag blue">⌨️ 拼音输入（主词典）</span>
+      <span class="tag blue">〰️ 笔画输入（stroke.db）</span>
+      <span class="tag blue">🔤 英文输入（englishletter.db）</span>
+      <span class="tag blue">✍️ 手写输入（Google ML Kit）</span>
+      <span class="tag blue">🎤 语音输入（腾讯云 ASR）</span>
+      <span class="tag blue">🔧 自动纠错（correction.db）</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">商业变现模型</h3>
+    <table>
+      <tbody>
+        <tr><td>💎 VIP 会员</td><td>VIPActivity / ChatVIPAct</td></tr>
+        <tr><td>👥 邀请分销</td><td>InvitationRecordAct</td></tr>
+        <tr><td>💰 收益提现</td><td>IncomeActivity</td></tr>
+        <tr><td>🏢 企业文章</td><td>CompanyArticle* (B2B)</td></tr>
+        <tr><td>🏷️ 企业成员管理</td><td>ReplyShareAct</td></tr>
+        <tr><td>🎨 皮肤商城</td><td>SkinAct</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3>B2B2C 业务闭环</h3>
+  <div class="code-block">
+企业端 (B)                      消费者端 (C)
+┌─────────────────┐            ┌─────────────────────┐
+│ 企业注册/认证     │            │ 微信登录 → 激活键盘    │
+│ 配置企业文章      │  ────────▶ │ 使用话术库 + AI 回复   │
+│ 管理成员(绑定微信) │            │ 场景化营销话术推荐     │
+│ 设置自定义按键     │            │ 邀请好友 → 赚取收益    │
+│ 导入话术(CSV)     │            │ 升级 VIP 解锁更多      │
+└─────────────────┘            └─────────────────────┘
+      │                                  │
+      └────── 腾讯云 COS ───────────────┘
+             (模板/素材分发)
+  </div>
+</div>
+
+<!-- 10. 技术栈 -->
+<h2 id="s10"><span class="num">10</span>技术栈画像</h2>
+<div class="card">
+  <table>
+    <thead><tr><th>维度</th><th>技术选型</th></tr></thead>
+    <tbody>
+      <tr><td>开发语言</td><td><span class="tag">Kotlin (主体)</span> <span class="tag">Java (少量)</span></td></tr>
+      <tr><td>UI 框架</td><td><span class="tag">Jetpack Compose (键盘+页面)</span> <span class="tag">传统 View (部分)</span></td></tr>
+      <tr><td>架构模式</td><td>MVVM + ViewModel + StateFlow</td></tr>
+      <tr><td>异步</td><td>Kotlin Coroutines + Flow</td></tr>
+      <tr><td>网络</td><td>Retrofit + OkHttp + Gson</td></tr>
+      <tr><td>数据库</td><td>Room ORM + SQLCipher (加密)</td></tr>
+      <tr><td>图片</td><td>Glide</td></tr>
+      <tr><td>后台任务</td><td>WorkManager</td></tr>
+      <tr><td>支付/登录</td><td>微信开放平台 SDK</td></tr>
+      <tr><td>云服务</td><td>腾讯云 COS + ASR</td></tr>
+      <tr><td>AI 能力</td><td>Google ML Kit (手写) + 自研 AI Agent (云端)</td></tr>
+      <tr><td>代码量</td><td>2,318 个业务类 / 31,632 个总类</td></tr>
+      <tr><td>混淆/压缩</td><td>R8 资源收缩（res 名称已混淆），代码轻度混淆</td></tr>
+      <tr><td>性能优化</td><td>Baseline Profile (baseline.prof) 加速冷启动</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 11. 安全风险 -->
+<h2 id="s11"><span class="num">11</span>安全风险评估</h2>
+<div class="card">
+  <div class="alert red">
+    <span>🔴</span>
+    <div><strong>高风险：明文 HTTP 流量</strong><br>usesCleartextTraffic=true 且未配置 networkSecurityConfig，所有网络请求可走 HTTP 明文。虽然主 API 域名使用 HTTPS，但 bebu.vip 的公告接口为 HTTP，登录态/数据可能被中间人窃取。</div>
+  </div>
+  <div class="alert red">
+    <span>🔴</span>
+    <div><strong>高风险：测试框架残留 Release 包</strong><br>androidx.test.core.app.InstrumentationActivityInvoker 的 3 个 Activity 被导出并注册了 LAUNCHER category，属于测试代码未在 release 构建中移除，可能被用于绕过正常启动流程。</div>
+  </div>
+  <div class="alert amber">
+    <span>🟡</span>
+    <div><strong>中风险：大量业务 Activity 导出</strong><br>18 个业务 Activity 设为 exported=true 但无明确权限保护，可被第三方应用通过 Intent 调起，可能泄露业务页面或被钓鱼利用。</div>
+  </div>
+  <div class="alert amber">
+    <span>🟡</span>
+    <div><strong>中风险：allowBackup=true</strong><br>应用数据可被 adb backup 导出，含用户登录态、企业配置、话术等敏感数据。</div>
+  </div>
+  <div class="alert amber">
+    <span>🟡</span>
+    <div><strong>中风险：敏感权限组合</strong><br>RECORD_AUDIO + SYSTEM_ALERT_WINDOW + REQUEST_INSTALL_PACKAGES + 后台启动库(bgstart.library)，组合起来具备较强的后台行为能力（语音监听 + 悬浮窗 + 静默安装 + 后台拉起），需关注实际使用场景是否合理。</div>
+  </div>
+  <div class="alert green">
+    <span>🟢</span>
+    <div><strong>正面：核心词典加密</strong><br>主词典 xiaoguandb.db 使用 SQLCipher 加密，有效保护核心 IP；签名完整(v1+v2+v3)；非 debuggable。</div>
+  </div>
+</div>
+
+<!-- 12. 结论 -->
+<h2 id="s12"><span class="num">12</span>拆解结论</h2>
+<div class="card">
+  <h3>应用画像</h3>
+  <p><strong>思语助手</strong>是一款由杭州一苇一豆开发的<strong>营销型 AI 输入法</strong>，包名后缀 <span class="mono">.toc</span> 表明这是面向消费者的版本（推测另有 B 端管理版本）。它将传统输入法（拼音/笔画/英文/手写/语音）与<strong>营销话术库 + AI 自动回复</strong>深度结合，主打"销售/客服边聊天边营销"场景。</p>
+  
+  <h3>核心差异化</h3>
+  <ul style="margin:8px 0 8px 20px">
+    <li><strong>键盘即营销台</strong>：在输入法键盘中集成 AI Agent、话术库、场景推荐，无需切换 App</li>
+    <li><strong>B2B2C 闭环</strong>：企业配置文章/话术 → 成员通过微信绑定使用 → 邀请分销变现</li>
+    <li><strong>多模态输入</strong>：5 种输入方式（含腾讯云实时语音 + Google 手写识别）</li>
+    <li><strong>微信生态深度绑定</strong>：登录、支付、分享、扫码全链路接入</li>
+  </ul>
+
+  <h3>工程评价</h3>
+  <ul style="margin:8px 0 8px 20px">
+    <li>✅ 技术栈现代（Kotlin + Compose + Coroutines），工程化程度高</li>
+    <li>✅ 核心 IP（词典）有加密保护，签名完整</li>
+    <li>✅ 支持 Baseline Profile 启动优化，4 套 ABI 全覆盖</li>
+    <li>⚠️ 安全配置粗放：明文流量未禁、测试代码残留、Activity 过度导出</li>
+    <li>⚠️ 权限组合偏激进（录音+悬浮窗+安装+后台启动），作为输入法需审慎</li>
+  </ul>
+</div>
+
+<footer>
+  <p>本报告由静态逆向分析生成，仅用于安全研究与技术学习目的。</p>
+  <p>分析工具：androguard 4.1.4 · Python 3.13 · unzip · 共解析 4 个 DEX / 207,687 个字符串</p>
+  <p>生成时间：2026-06-29</p>
+</footer>
+
+</div>
+</body>
+</html>

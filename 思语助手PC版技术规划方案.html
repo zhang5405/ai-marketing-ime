@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>思语助手 PC 版技术规划方案</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#fff; --border:#e6e8eb; --text:#1a1a1a; --muted:#6b7280;
+    --primary:#2563eb; --primary-bg:#eff6ff; --green:#059669; --green-bg:#ecfdf5;
+    --red:#dc2626; --red-bg:#fef2f2; --amber:#d97706; --amber-bg:#fffbeb;
+    --purple:#7c3aed; --purple-bg:#f5f3ff; --code-bg:#f3f4f6; --tag:#eef2ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.7;font-size:15px;padding:0}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 64px}
+  header{background:linear-gradient(135deg,#1e3a5f,#7c3aed);color:#fff;padding:40px 32px;border-radius:16px;margin-bottom:28px;box-shadow:0 8px 32px rgba(124,58,237,.18)}
+  header h1{font-size:26px;margin-bottom:6px}
+  header .sub{opacity:.85;font-size:15px}
+  header .badges{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+  header .badge{background:rgba(255,255,255,.18);padding:4px 12px;border-radius:20px;font-size:13px;backdrop-filter:blur(4px)}
+  h2{font-size:20px;margin:32px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--purple);display:flex;align-items:center;gap:8px}
+  h2 .num{background:var(--purple);color:#fff;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+  h3{font-size:16px;margin:18px 0 10px;color:#374151}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  @media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
+  .kv{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed #f0f0f0;font-size:14px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted);min-width:140px;flex-shrink:0}
+  .kv .v{word-break:break-all}
+  .mono{font-family:"SF Mono",Consolas,"Courier New",monospace;font-size:13px;background:var(--code-bg);padding:1px 6px;border-radius:4px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+  th{background:#f9fafb;font-weight:600;color:#374151;white-space:nowrap}
+  td.mono{background:transparent;padding:8px 10px}
+  .tag{display:inline-block;background:var(--tag);color:#3730a3;padding:2px 10px;border-radius:12px;font-size:12px;margin:2px}
+  .tag.green{background:var(--green-bg);color:var(--green)}
+  .tag.red{background:var(--red-bg);color:var(--red)}
+  .tag.amber{background:var(--amber-bg);color:var(--amber)}
+  .tag.blue{background:var(--primary-bg);color:var(--primary)}
+  .tag.purple{background:var(--purple-bg);color:var(--purple)}
+  .alert{border-radius:10px;padding:12px 16px;margin:8px 0;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+  .alert.red{background:var(--red-bg);border:1px solid #fecaca;color:#991b1b}
+  .alert.amber{background:var(--amber-bg);border:1px solid #fde68a;color:#92400e}
+  .alert.green{background:var(--green-bg);border:1px solid #a7f3d0;color:#065f46}
+  .alert.blue{background:var(--primary-bg);border:1px solid #bfdbfe;color:#1e40af}
+  .alert.purple{background:var(--purple-bg);border:1px solid #ddd6fe;color:#5b21b6}
+  .bar{height:22px;border-radius:4px;display:flex;align-items:center;padding-left:8px;color:#fff;font-size:12px;font-weight:600;min-width:40px}
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:13px;background:#f3f4f6}
+  .section-desc{color:var(--muted);font-size:14px;margin-bottom:12px}
+  .code-block{background:#1e293b;color:#e2e8f0;padding:14px 16px;border-radius:8px;font-family:Consolas,monospace;font-size:13px;overflow-x:auto;margin:8px 0;white-space:pre}
+  .toc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:24px}
+  .toc a{color:var(--purple);text-decoration:none;font-size:14px;display:block;padding:3px 0}
+  .toc a:hover{text-decoration:underline}
+  .stat{text-align:center;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+  .stat .n{font-size:24px;font-weight:700;color:var(--purple)}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .flow-box{background:#f0f4ff;border:1px dashed #93c5fd;border-radius:10px;padding:16px;margin:12px 0;font-size:14px}
+  .flow-box strong{display:block;margin-bottom:6px;color:#1e40af}
+  .divider{border-top:2px solid var(--border);margin:24px 0}
+  .effort-bar{display:flex;align-items:center;gap:10px;margin:4px 0}
+  .effort-bar .label{width:150px;font-size:13px;color:var(--muted);text-align:right}
+  .effort-bar .track{flex:1;height:18px;background:#f3f4f6;border-radius:9px;overflow:hidden}
+  .effort-bar .fill{height:100%;border-radius:9px}
+  footer{text-align:center;color:var(--muted);font-size:13px;margin-top:40px;padding-top:20px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>思语助手 · PC 版技术规划方案</h1>
+  <div class="sub">Windows 桌面端输入法 — 从 Android IME 到 TSF 的全链路迁移设计</div>
+  <div class="badges">
+    <span class="badge">目标平台：Windows 10/11</span>
+    <span class="badge">核心技术：TSF + C++</span>
+    <span class="badge">最小可行版：~1.5 人月</span>
+    <span class="badge">完整版：~3.5 人月</span>
+  </div>
+</header>
+
+<div class="toc">
+  <strong>目录</strong>
+  <a href="#s1">1. 核心判断：能不能做？</a>
+  <a href="#s2">2. 架构差异：Android IME vs Windows TSF</a>
+  <a href="#s3">3. PC 版整体架构设计</a>
+  <a href="#s4">4. 模块迁移分析：哪些能复用？</a>
+  <a href="#s5">5. 各模块技术方案</a>
+  <a href="#s6">6. 推荐技术栈</a>
+  <a href="#s7">7. 开发阶段规划</a>
+  <a href="#s8">8. 工作量估算</a>
+  <a href="#s9">9. 风险与挑战</a>
+  <a href="#s10">10. 替代方案探讨</a>
+</div>
+
+<!-- 1. 核心判断 -->
+<h2 id="s1"><span class="num">1</span>核心判断：能不能做？</h2>
+
+<div class="alert green">
+  <span>✅</span>
+  <div><strong>结论：可以做，且值得做。</strong>思语助手的核心竞争力在"话术库 + AI Agent + 营销场景"，而非输入法引擎本身。输入法的拼音/笔画/英文引擎是通用技术，PC 端完全可自研或集成开源方案。真正有价值的是业务层（话术库、AI 回复），这些几乎无需改动即可复用。去掉微信登录和云端存储后，整体更加轻量独立，无需部署服务端。</div>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <h3 style="margin-top:0">能做的基础</h3>
+    <table>
+      <tbody>
+        <tr><td>🔐 词典数据库</td><td>SQLCipher 有 Windows/C++ 版，词典文件可直接复用</td></tr>
+        <tr><td>🌐 API & 业务逻辑</td><td>HTTP API 层语言无关，任何语言都可调用</td></tr>
+        <tr><td>🧠 AI Agent</td><td>纯服务端能力，客户端只需发 HTTP 请求</td></tr>
+        <tr><td>💾 本地存储</td><td>SQLite / 文件系统，无需云端</td></tr>
+        <tr><td>⚡ 离线可用</td><td>全部数据本地化，断网也能用</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">需要重写的部分</h3>
+    <table>
+      <tbody>
+        <tr><td><span class="tag red">必须重写</span></td><td>IME 框架（TSF COM DLL）</td></tr>
+        <tr><td><span class="tag red">必须重写</span></td><td>键盘 UI（桌面悬浮窗）</td></tr>
+        <tr><td><span class="tag red">必须重写</span></td><td>拼音/笔画输入引擎</td></tr>
+        <tr><td><span class="tag amber">需要适配</span></td><td>UI 框架（Compose → WPF/Qt）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 2. 架构差异 -->
+<h2 id="s2"><span class="num">2</span>架构差异：Android IME vs Windows TSF</h2>
+
+<div class="card">
+  <p class="section-desc">这是做 PC 版最核心的技术认知。两个平台的输入法机制完全不同，不能"移植代码"，只能"移植设计"。</p>
+
+  <div class="grid g2">
+    <div>
+      <h3 style="margin-top:0">Android InputMethodService</h3>
+      <div class="code-block">继承 InputMethodService
+onCreateInputView() → 返回键盘 View
+onKeyDown/Up() → 处理按键
+commitText() → 上屏文字
+全程在 Java/Kotlin 虚拟机中运行
+系统管理生命周期</div>
+      <div style="margin-top:8px">
+        <span class="tag blue">Java/Kotlin</span>
+        <span class="tag blue">View/Compose</span>
+        <span class="tag blue">系统进程内</span>
+        <span class="tag blue">标准 API</span>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Windows TSF (Text Services Framework)</h3>
+      <div class="code-block">实现 COM 接口：
+  ITfTextInputProcessorEx
+  ITfKeyEventSink
+  ITfCompositionSink
+  ITfDisplayAttributeProvider
+注册为 COM 服务器 (DLL)
+通过 TSF Manager 与应用交互
+必须用 C++ (COM ABI)</div>
+      <div style="margin-top:8px">
+        <span class="tag purple">C++ / COM</span>
+        <span class="tag purple">Direct2D / WPF</span>
+        <span class="tag purple">独立进程 (DLL)</span>
+        <span class="tag purple">底层 API</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>关键差异表</h3>
+  <table>
+    <thead><tr><th>维度</th><th>Android IME</th><th>Windows TSF</th><th>影响</th></tr></thead>
+    <tbody>
+      <tr><td>开发语言</td><td>Kotlin / Java</td><td>C++（必须）</td><td><span class="tag red">完全重写</span></td></tr>
+      <tr><td>框架模型</td><td>继承 Service 类</td><td>实现 COM 接口</td><td><span class="tag red">架构不同</span></td></tr>
+      <tr><td>键盘 UI</td><td>View/Compose 嵌入系统</td><td>自绘窗口或 IME UI</td><td><span class="tag red">UI 重做</span></td></tr>
+      <tr><td>候选词窗口</td><td>CandidatesView</td><td>ITfCandidateListUIElement</td><td><span class="tag amber">需适配</span></td></tr>
+      <tr><td>键位处理</td><td>标准 KeyEvent</td><td>WM_KEYDOWN + TSF 按键事件</td><td><span class="tag amber">映射不同</span></td></tr>
+      <tr><td>部署方式</td><td>APK 安装</td><td>MSI/EXE 安装 + 注册表注册</td><td><span class="tag amber">方式不同</span></td></tr>
+      <tr><td>权限模型</td><td>Android 权限系统</td><td>用户态 DLL（无特殊权限）</td><td>更简单</td></tr>
+      <tr><td>进程模型</td><td>独立进程</td><td>加载到目标进程（DLL）</td><td><span class="tag red">安全性更高要求</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="alert amber">
+  <span>⚠️</span>
+  <div><strong>关键认知：</strong>TSF 输入法是 COM DLL，会被加载到每一个使用输入法的目标进程地址空间（Chrome、Word、微信等）。这意味着：① 必须用原生 C++ 且不能有内存泄漏；② 崩溃会拖垮宿主进程；③ 不能在 DLL 内干"重活"，需要配合独立的 UI/Service 进程。</div>
+</div>
+
+<!-- 3. PC 版整体架构 -->
+<h2 id="s3"><span class="num">3</span>PC 版整体架构设计</h2>
+
+<div class="card">
+  <h3>推荐架构：三进程模型</h3>
+  <p class="section-desc">TSF DLL 必须轻量，业务逻辑放在独立进程，通过进程间通信（IPC）交互。这是搜狗、百度等桌面输入法的标准做法。</p>
+  
+  <div class="code-block">
+┌────────────────────────────────────────────────────────────┐
+│                      目标进程 (Chrome / Word / WeChat)      │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              TSF IME DLL (C++, 轻量)                  │  │
+│  │  · COM 接口实现 (ITfKeyEventSink 等)                  │  │
+│  │  · 按键拦截 & 组合状态管理                             │  │
+│  │  · IPC 客户端 → 发送按键事件，接收候选词列表            │  │
+│  │  · 候选窗/状态栏 UI 渲染 (Direct2D)                    │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+         │  Named Pipe / Local Socket
+         ▼
+┌────────────────────────────────────────────────────────────┐
+│               输入法核心服务进程 (C++, 中等)                 │
+│  · 拼音引擎 (查词 + 组句 + 智能排序)                        │
+│  · 笔画引擎 / 英文引擎 / 自动纠错                            │
+│  · SQLCipher 词典加载 & 查询                                │
+│  · 用户词库学习 & 词频调整                                  │
+│  · 多进程请求调度                                          │
+│  · 话术库本地查询                                          │
+└────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│                    本地数据层 (SQLite + 文件系统)             │
+│  · 话术库 (本地 SQLite 存储)                                │
+│  · 用户配置 / 词库 / 素材                                   │
+│  · AI Agent 配置 (本地 JSON)                                │
+│  · 可选的云端同步 (后续扩展)                                 │
+└────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌────────────────────────────────────────────────────────────┐
+│              桌面 UI 进程 (C++/Qt 或 C# WPF)                │
+│  · 设置界面 (不是键盘 UI，键盘 UI 在 TSF DLL 中)            │
+│  · 话术库管理 / AI Agent 配置                              │
+│  · 系统托盘图标                                            │
+└────────────────────────────────────────────────────────────┘
+  </div>
+</div>
+
+<div class="card">
+  <h3>为什么是三进程模型？</h3>
+  <table>
+    <thead><tr><th>问题</th><th>如果放一起</th><th>三进程方案</th></tr></thead>
+    <tbody>
+      <tr><td>稳定性</td><td>引擎崩溃 → 目标进程崩溃</td><td>引擎崩溃，DLL 降级为基本键盘，宿主不受影响</td></tr>
+      <tr><td>内存</td><td>每个目标进程载入完整引擎+词典(156MB)</td><td>词典只在 Service 进程加载一次，所有宿主共享</td></tr>
+      <tr><td>性能</td><td>词典 I/O 在宿主进程 UI 线程</td><td>IPC 异步，词典操作在专门线程</td></tr>
+      <tr><td>更新</td><td>DLL 被占用，无法热更新</td><td>Service 进程可独立重启更新</td></tr>
+      <tr><td>调试</td><td>输入法崩溃无法分离</td><td>各进程独立日志和调试</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 4. 模块迁移 -->
+<h2 id="s4"><span class="num">4</span>模块迁移分析：哪些能复用？</h2>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Android 模块</th><th>PC 版对应</th><th>复用度</th><th>工作量</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>拼音输入引擎 + xiaoguandb.db</td>
+        <td>C++ 拼音引擎 + SQLCipher 词典</td>
+        <td><span class="tag amber">词典文件复用，引擎重写</span></td>
+        <td>★★★★★</td>
+      </tr>
+      <tr>
+        <td>笔画输入 stroke.db</td>
+        <td>C++ 笔画引擎 + 同一词典文件</td>
+        <td><span class="tag green">词典+逻辑均可参考</span></td>
+        <td>★★★</td>
+      </tr>
+      <tr>
+        <td>英文输入 englishletter.db</td>
+        <td>C++ 英文引擎</td>
+        <td><span class="tag green">词典完全复用</span></td>
+        <td>★★</td>
+      </tr>
+      <tr>
+        <td>自动纠错 correction.db</td>
+        <td>C++ 纠错模块</td>
+        <td><span class="tag green">词典完全复用</span></td>
+        <td>★★</td>
+      </tr>
+      <tr>
+        <td>Retrofit + OkHttp 网络层</td>
+        <td>libcurl / cpp-httplib</td>
+        <td><span class="tag green">API 接口复用</span></td>
+        <td>★★</td>
+      </tr>
+      <tr>
+        <td>Gson 数据解析</td>
+        <td>nlohmann/json / rapidjson</td>
+        <td><span class="tag green">数据模型复用</span></td>
+        <td>★</td>
+      </tr>
+      <tr>
+        <td>Glide 图片加载</td>
+        <td>Qt Network / libcurl + stb_image</td>
+        <td><span class="tag amber">需要重写</span></td>
+        <td>★★</td>
+      </tr>
+      <tr>
+        <td>键盘 UI (Compose)</td>
+        <td>Direct2D 或 WPF 键盘 UI</td>
+        <td><span class="tag red">完全重写</span></td>
+        <td>★★★★★</td>
+      </tr>
+      <tr>
+        <td>话术库 Tab / AI Agent Tab</td>
+        <td>桌面 UI 进程 - 话术面板（本地 SQLite）</td>
+        <td><span class="tag amber">设计复用，UI 重写</span></td>
+        <td>★★★</td>
+      </tr>
+      <tr>
+        <td>本地存储 (配置/词库/素材)</td>
+        <td>SQLite + 文件系统</td>
+        <td><span class="tag green">轻量本地方案</span></td>
+        <td>★</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="alert blue" style="margin-top:14px">
+    <span>📊</span>
+    <div><strong>复用度总结：</strong>词典数据 100% 复用，API 接口 100% 复用，业务逻辑参考复用。真正需要从零写的只有 IME 框架、拼音引擎核心算法、桌面 UI 三块。整体约 40% 设计可复用，代码层面约 10~15% 的逻辑可参考（语言不同无法直接移植）。</div>
+  </div>
+</div>
+
+<!-- 5. 各模块技术方案 -->
+<h2 id="s5"><span class="num">5</span>各模块技术方案</h2>
+
+<div class="card">
+  <h3>5.1 拼音输入引擎（最核心、最难）</h3>
+  <p class="section-desc">拼音引擎决定了输入法的"智商"。三种方案：</p>
+  
+  <table>
+    <thead><tr><th>方案</th><th>优点</th><th>缺点</th><th>推荐度</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>A. 解析并重新实现现有引擎逻辑</strong></td>
+        <td>完全匹配现有词典格式，体验一致</td>
+        <td>需要逆向理解 Kotlin 引擎算法（查词、组句、排序逻辑），工作量大且不保证完全一致</td>
+        <td><span class="tag amber">中等</span></td>
+      </tr>
+      <tr>
+        <td><strong>B. 基于开源拼音引擎（推荐）</strong></td>
+        <td>成熟稳定，社区维护，文档齐全</td>
+        <td>需要将现有词典转换为开源引擎格式，或适配 SQLCipher 读取；整句智能可能略有差异</td>
+        <td><span class="tag green" style="background:var(--green-bg);color:var(--green)">★★★★★</span></td>
+      </tr>
+      <tr>
+        <td><strong>C. 从零自研拼音引擎</strong></td>
+        <td>完全自主可控</td>
+        <td>拼音引擎是几十年积累的领域（词库、语言模型、排序算法），从零做性价比极低</td>
+        <td><span class="tag red">不推荐</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="alert green">
+    <span>💡</span>
+    <div><strong>推荐方案 B：开源拼音引擎</strong><br>可选 <strong>librime (RIME 中州韻)</strong>，这是目前最成熟的开源中文输入法引擎，支持拼音/双拼/笔画/仓颉，有 C++ API，可加载自定义词典。思语助手的 SQLCipher 词典可以解密后转换为 RIME 格式，或通过 SQLCipher C API 直接查询后喂给引擎。RIME 也是小狼毫（Windows 版 RIME）的引擎，有成熟的 TSF 实现可参考。</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>5.2 TSF IME DLL（最底层）</h3>
+  <p class="section-desc">Windows 官方 SDK 提供了 TSF 示例代码，可以在此基础上开发。</p>
+  
+  <div class="flow-box">
+    <strong>核心 COM 接口</strong>
+    <div class="code-block">ITfTextInputProcessorEx  // 激活/停用
+ITfKeyEventSink           // 键盘事件 (KeyDown/KeyUp)
+ITfCompositionSink        // 组合/候选管理
+ITfDisplayAttributeProvider // 下划线/高亮样式
+ITfThreadMgrEventSink     // 线程焦点切换</div>
+  </div>
+
+  <div class="flow-box">
+    <strong>TSF DLL 生命周期</strong>
+    <div class="code-block">1. 用户切换到此输入法
+2. TSF Manager 加载 DLL → 调用 Activate()
+3. ITfKeyEventSink.OnKeyDown() 收到按键
+4. DLL 通过 IPC 发送按键到 Service 进程
+5. Service 返回候选词列表
+6. DLL 渲染候选窗 (Direct2D 或系统 ITfUIElement)
+7. 用户选词 → ITfComposition.EndComposition() → 上屏
+8. 用户切换走 → Deactivate()
+9. DLL 可能被卸载 (取决于 TSF Manager 策略)</div>
+  </div>
+
+  <div class="alert amber">
+    <span>⚠️</span>
+    <div><strong>注意事项：</strong>TSF DLL 中对宿主进程的任何阻塞操作（如同步 IPC、文件 I/O、锁等待）都会让整个目标应用卡死。所有操作必须是异步的。</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>5.3 键盘 UI & 候选窗</h3>
+  <p class="section-desc">桌面输入法的键盘 UI 有两种实现方式：</p>
+
+  <table>
+    <thead><tr><th></th><th>方式 A：TSF UIElement（系统候选窗）</th><th>方式 B：自绘悬浮窗（推荐）</th></tr></thead>
+    <tbody>
+      <tr><td>实现</td><td>ITfCandidateListUIElement</td><td>WS_EX_LAYERED 半透明窗口 + Direct2D/GDI+</td></tr>
+      <tr><td>优点</td><td>与系统主题一致，无需自绘</td><td>完全自定义，可实现复杂 UI（Tab 切换、话术面板、图片素材）</td></tr>
+      <tr><td>缺点</td><td>UI 功能受限，无法做话术 Tab 等复杂界面</td><td>需要处理窗口层级、DPI 缩放、多屏等细节</td></tr>
+      <tr><td>适用</td><td>纯打字输入法</td><td><strong>思语助手（营销型，需要话术/AI 面板）</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert purple">
+    <span>💡</span>
+    <div>思语助手的核心竞争力是"键盘即营销台"，需要在候选中嵌入话术、AI 回复、图片素材等。所以<strong>必须用自绘悬浮窗方案 B</strong>，才能实现与 Android 版类似的 Tab 切换体验。</div>
+  </div>
+</div>
+
+<!-- 6. 技术栈 -->
+<h2 id="s6"><span class="num">6</span>推荐技术栈</h2>
+
+<div class="card">
+  <table>
+    <thead><tr><th>层</th><th>技术</th><th>原因</th></tr></thead>
+    <tbody>
+      <tr><td>TSF IME DLL</td><td><strong>C++17</strong> + Windows SDK + ATL</td><td>COM 接口必须以 C++ 实现，ATL（Active Template Library）简化 COM 样板代码</td></tr>
+      <tr><td>Core Service</td><td><strong>C++17</strong> + librime + SQLCipher</td><td>拼音引擎 + 加密词典，需要高性能和低内存</td></tr>
+      <tr><td>IPC 通信</td><td><strong>Named Pipe</strong>（推荐）或 LocalSocket</td><td>Windows 上最成熟的进程间通信方式，低延迟</td></tr>
+      <tr><td>桌面 UI 进程</td><td><strong>Qt 6 (C++)</strong> 或 <strong>C# WPF</strong></td><td>Qt 跨平台且与 C++ Service 天然集成；WPF 开发效率高但仅 Windows</td></tr>
+      <tr><td>键盘浮窗 UI</td><td><strong>Direct2D + DirectWrite</strong></td><td>TSF DLL 内渲染候选项，高性能、低延迟</td></tr>
+      <tr><td>网络层</td><td><strong>libcurl</strong> + nlohmann/json</td><td>C++ 生态最成熟的 HTTP 库 + JSON 解析</td></tr>
+      <tr><td>构建系统</td><td><strong>CMake</strong></td><td>跨平台 C++ 构建标准</td></tr>
+      <tr><td>安装包</td><td><strong>NSIS</strong> 或 <strong>WiX Toolset</strong></td><td>注册 COM 组件 + 注册表写入 + 文件部署</td></tr>
+      <tr><td>更新</td><td><strong>Sparkle</strong> (WinSparkle)</td><td>自动更新框架</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>UI 框架选择：Qt 6 vs C# WPF</h3>
+  <table>
+    <thead><tr><th>维度</th><th>Qt 6 (C++)</th><th>WPF (C#)</th></tr></thead>
+    <tbody>
+      <tr><td>与 Service 集成</td><td><span class="tag green">天然集成（同语言）</span></td><td><span class="tag amber">需要 C++/CLI 桥接</span></td></tr>
+      <tr><td>开发效率</td><td>中等，需要手写较多 UI 代码</td><td><span class="tag green">高，XAML + 数据绑定</span></td></tr>
+      <tr><td>UI 效果</td><td>QML 可实现现代 UI</td><td><span class="tag green">原生 Windows 风格，动画丰富</span></td></tr>
+      <tr><td>部署体积</td><td><span class="tag amber">Qt DLL ~40MB</span></td><td><span class="tag green">依赖 .NET Framework（系统自带）</span></td></tr>
+      <tr><td>跨平台</td><td><span class="tag green">✓ (Windows/Linux/macOS)</span></td><td><span class="tag red">仅 Windows（除非 .NET MAUI）</span></td></tr>
+      <tr><td>社区资源</td><td>丰富</td><td><span class="tag green">非常丰富</span></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:12px;color:var(--muted)">建议：如果只做 Windows → WPF（开发快）；如果未来考虑跨平台 → Qt 6 + QML。</p>
+</div>
+
+<!-- 7. 开发阶段 -->
+<h2 id="s7"><span class="num">7</span>开发阶段规划</h2>
+
+<div class="card">
+  <h3>MVP 最小可行版（约 2 人月）</h3>
+  <p class="section-desc">目标：能在 Windows 上打字，打通最基本的输入能力。</p>
+  <table>
+    <thead><tr><th>阶段</th><th>内容</th><th>产出</th></tr></thead>
+    <tbody>
+      <tr><td>Phase 1<br><span class="tag">2周</span></td>
+        <td><strong>TSF 框架搭建</strong><br>· 搭建最小 TSF IME DLL（注册、激活、按键拦截）<br>· Named Pipe IPC 通道（DLL ↔ Service）<br>· 简单候选窗渲染（Direct2D）</td>
+        <td>能注册到系统、能拦截按键的空白输入法</td>
+      </tr>
+      <tr><td>Phase 2<br><span class="tag">3周</span></td>
+        <td><strong>拼音引擎集成</strong><br>· 集成 librime（RIME 引擎）<br>· 解密并转换 xiaoguandb.db → RIME 词典格式<br>· 笔画/英文/纠错字典集成<br>· 候选词排序 & 用户词频学习</td>
+        <td>完整的拼音/笔画/英文输入能力</td>
+      </tr>
+      <tr><td>Phase 3<br><span class="tag">2周</span></td>
+        <td><strong>键盘 UI + 输入集成</strong><br>· 完整键盘浮窗 UI（键盘布局、候选词、皮肤）<br>· 拼音/笔画/英文/纠错 全部打通</td>
+        <td>完整的键盘打字体验</td>
+      </tr>
+      <tr><td>Phase 4<br><span class="tag">1.5周</span></td>
+        <td><strong>本地话术库 & 设置界面</strong><br>· 话术库本地存储与加载（SQLite）<br>· 设置界面（基础）<br>· 安装包制作</td>
+        <td>MVP 可发布版本</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>完整版（额外约 2 人月）</h3>
+  <table>
+    <thead><tr><th>阶段</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>Phase 5<br><span class="tag">3周</span></td><td><strong>完整业务 UI</strong><br>· 话术库管理面板（TabChat）<br>· AI Agent 配置与回复面板<br>· 活动/营销面板（TabActive）<br>· 图片素材面板（TabPicture）<br>· 自定义键盘配置</td></tr>
+      <tr><td>Phase 6<br><span class="tag">2周</span></td><td><strong>体验打磨</strong><br>· 键盘动画/特效<br>· DPI 缩放适配（100%~300%）<br>· 多屏支持<br>· 触屏设备适配</td></tr>
+      <tr><td>Phase 7<br><span class="tag">2周</span></td><td><strong>稳定 & 安全</strong><br>· 崩溃上报 (sentry-native)<br>· 自动更新体系<br>· 签名与杀软误报处理<br>· 兼容性测试（Top 50 Windows 应用）</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 8. 工作量估算 -->
+<h2 id="s8"><span class="num">8</span>工作量估算</h2>
+
+<div class="card">
+  <h3>人员配置建议</h3>
+  <div class="grid g2">
+    <div>
+      <div class="effort-bar"><span class="label">TSF + 拼音引擎 (C++)</span><div class="track"><div class="fill" style="width:100%;background:#7c3aed"></div></div><span>2 人 × 1.5 月</span></div>
+      <div class="effort-bar"><span class="label">桌面 UI + 业务 (Qt/WPF)</span><div class="track"><div class="fill" style="width:65%;background:#2563eb"></div></div><span>1 人 × 1.5 月</span></div>
+      <div class="effort-bar"><span class="label">测试 & 兼容性</span><div class="track"><div class="fill" style="width:35%;background:#d97706"></div></div><span>0.5 人 × 1.5 月</span></div>
+    </div>
+    <div>
+      <div class="stat"><div class="n" style="color:var(--purple)">2~3</div><div class="l">建议团队规模</div></div>
+      <div class="stat" style="margin-top:8px"><div class="n" style="color:#2563eb">~1.5 月</div><div class="l">MVP 开发周期</div></div>
+      <div class="stat" style="margin-top:8px"><div class="n" style="color:#059669">~3.5 月</div><div class="l">完整版周期</div></div>
+      <div class="stat" style="margin-top:8px"><div class="n" style="color:#d97706">~3 人</div><div class="l">MVP 团队</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. 风险 -->
+<h2 id="s9"><span class="num">9</span>风险与挑战</h2>
+
+<div class="card">
+  <div class="alert red">
+    <span>🔴 高风险</span>
+    <div>
+      <strong>TSF 开发门槛高</strong><br>
+      TSF 文档稀少（以 MSDN 为主），社区资料少，调试困难（DLL 加载到其他进程）。国内做过商业级 TSF 输入法的团队屈指可数。建议：招有 Windows IME 经验的人，或基于 RIME 的 TSF 实现（小狼毫）做二次开发。
+    </div>
+  </div>
+
+  <div class="alert red">
+    <span>🔴 高风险</span>
+    <div>
+      <strong>兼容性噩梦</strong><br>
+      输入法 DLL 会被加载到每一个进程。不同应用的 IME 支持程度差异巨大：Chrome 对 TSF 支持最好，但某些老旧企业软件、游戏、UWP 应用可能存在兼容性问题。需要大量的兼容性测试和 workaround。
+    </div>
+  </div>
+
+  <div class="alert amber">
+    <span>🟡 中风险</span>
+    <div>
+      <strong>杀毒软件误报</strong><br>
+      输入法 DLL 加载到其他进程的行为会被杀软视为可疑。新签发的代码签名证书需要一段时间建立信誉。建议使用 EV 代码签名证书 + 主动提交各大杀软厂商白名单。
+    </div>
+  </div>
+
+  <div class="alert amber">
+    <span>🟡 中风险</span>
+    <div>
+      <strong>词典格式转换精度</strong><br>
+      xiaoguandb.db 为 SQLCipher 加密，需要找到密钥才能解密。如果密钥硬编码在 DEX/Native 层中，需要深度逆向分析。解密后转为 RIME 格式可能丢失部分私有的排序/联想信息。
+    </div>
+  </div>
+</div>
+
+<!-- 10. 替代方案 -->
+<h2 id="s10"><span class="num">10</span>替代方案探讨</h2>
+
+<div class="card">
+  <h3>方案对比</h3>
+  <table>
+    <thead><tr><th>方案</th><th>投入</th><th>体验</th><th>适用场景</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>A. 完整 TSF 输入法</strong><br>（本方案主体）</td>
+        <td>高<br>1.5~3.5 人月</td>
+        <td>★★★★★<br>原生输入法体验，全局可用</td>
+        <td>长期发展，终极方案</td>
+      </tr>
+      <tr>
+        <td><strong>B. Electron 外壳 + 剪贴板</strong><br>独立桌面应用，在应用中打字后复制粘贴到目标窗口</td>
+        <td>低<br>1~2 周</td>
+        <td>★★<br>需要频繁 Ctrl+C/V，体验割裂</td>
+        <td>快速验证 PC 端需求，demo 演示</td>
+      </tr>
+      <tr>
+        <td><strong>C. 键盘钩子 + OSD 覆盖层</strong><br>SetWindowsHookEx 全局键盘钩子 + 悬浮窗口</td>
+        <td>中<br>1~2 月</td>
+        <td>★★★<br>伪输入法，可能有输入延迟和兼容问题</td>
+        <td>中等投入的过渡方案</td>
+      </tr>
+      <tr>
+        <td><strong>D. 基于 RIME (小狼毫) 插件化</strong><br>在小狼毫输入法上开发插件/扩展</td>
+        <td>中低<br>1~2 月</td>
+        <td>★★★★<br>接近原生，但受限于小狼毫的扩展能力</td>
+        <td>借力开源生态的轻量方案</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="alert purple" style="margin-top:14px">
+    <span>💡</span>
+    <div><strong>建议路径：B → D → A</strong><br>先用方案 B 快速做一个 demo 验证 PC 端需求是否真实存在；如果验证通过，考虑基于小狼毫（方案 D）做插件化开发快速上线；长期投入做原生 TSF（方案 A）获得完整体验和自主可控。</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="card" style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid #c4b5fd">
+  <h3 style="margin-top:0;color:#5b21b6">总结</h3>
+  <p>思语助手 PC 版在技术上完全可行，去除手写、语音、VIP、分销、微信登录和云端存储后，已成为一个<strong>完全本地化的离线输入法</strong>，无需服务端即可运行。最大的挑战仍是 <strong>TSF 框架的技术门槛</strong> 和 <strong>输入法兼容性的工程深度</strong>。好消息是核心资产（词典、话术库设计、AI Agent 设计）可参考复用，真正需要从零攻坚的只有输入法框架层、桌面 UI 和本地存储。</p>
+  <p style="margin-top:8px">输入方式为 <strong>拼音 + 笔画 + 英文</strong> 三种纯键盘输入；存储全部本地化（SQLite + 文件系统），无需登录、无需网络。业务层面聚焦 <strong>话术库 + AI Agent</strong> 两大核心。MVP 工作量约 1.5 人月，完整版约 3.5 人月。</p>
+  <p style="margin-top:8px">建议先做一个轻量 Demo 验证 PC 端需求，再逐步投入完整开发。如果团队没有 Windows 系统编程经验，强烈建议招聘或外包有 TSF 输入法开发经验的人来主导框架层。</p>
+</div>
+
+<footer>
+  <p>本方案基于 APK 逆向拆解报告中的技术栈信息分析得出。</p>
+  <p>生成时间：2026-06-29</p>
+</footer>
+
+</div>
+</body>
+</html>

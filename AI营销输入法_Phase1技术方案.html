@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 营销输入法 · Phase 1 技术方案</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --text2: #6b7280;
+    --text3: #9ca3af;
+    --blue: #185FA5;
+    --blue-bg: #E6F1FB;
+    --blue-border: #B5D4F4;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --purple-border: #CECBF6;
+    --green: #0F6E56;
+    --green-bg: #E1F5EE;
+    --green-border: #9FE1CB;
+    --red: #A32D2D;
+    --red-bg: #FCEBEB;
+    --red-border: #F7C1C1;
+    --amber: #854F0B;
+    --amber-bg: #FAEEDA;
+    --amber-border: #FAC775;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 24px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 26px; font-weight: 700; margin: 32px 0 8px; }
+  h1:first-child { margin-top: 0; }
+  h2 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: var(--text); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 10px; }
+  p { margin: 8px 0; font-size: 14px; }
+  ul, ol { margin: 8px 0 8px 24px; font-size: 14px; }
+  li { margin: 4px 0; }
+
+  .header {
+    background: linear-gradient(135deg, #185FA5 0%, #534AB7 100%);
+    color: white;
+    padding: 36px 32px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+  }
+  .header h1 { color: white; margin: 0 0 8px; font-size: 28px; }
+  .header .sub { font-size: 15px; opacity: 0.85; }
+  .header .meta { display: flex; gap: 24px; margin-top: 16px; font-size: 13px; opacity: 0.8; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+
+  .alert {
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .alert-red { background: var(--red-bg); border: 1px solid var(--red-border); }
+  .alert-amber { background: var(--amber-bg); border: 1px solid var(--amber-border); }
+  .alert-green { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .alert-blue { background: var(--blue-bg); border: 1px solid var(--blue-border); }
+  .alert-title { font-weight: 700; margin-bottom: 8px; font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #f3f4f6; padding: 10px 14px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: #f9fafb; }
+
+  code { font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace; font-size: 12.5px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 16px 20px; border-radius: 10px; overflow-x: auto; margin: 12px 0; font-size: 13px; line-height: 1.5; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+  .kw { color: #93c5fd; }
+  .str { color: #86efac; }
+  .cmt { color: #64748b; }
+  .type { color: #fbbf24; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .tag-red { background: var(--red-bg); color: var(--red); }
+  .tag-green { background: var(--green-bg); color: var(--green); }
+  .tag-blue { background: var(--blue-bg); color: var(--blue); }
+  .tag-amber { background: var(--amber-bg); color: var(--amber); }
+
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-item::before { content: ''; position: absolute; left: -24px; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--blue); background: white; }
+  .timeline-item.done::before { background: var(--green); border-color: var(--green); }
+  .timeline-date { font-size: 12px; color: var(--text3); }
+  .timeline-title { font-weight: 600; font-size: 14px; margin: 2px 0; }
+  .timeline-desc { font-size: 13px; color: var(--text2); }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+  .phase-box { border-radius: 10px; padding: 16px 20px; margin: 8px 0; }
+  .phase-1 { background: var(--blue-bg); border-left: 4px solid var(--blue); }
+  .phase-2 { background: var(--purple-bg); border-left: 4px solid var(--purple); }
+  .phase-3 { background: var(--green-bg); border-left: 4px solid var(--green); }
+
+  .schema-table td:first-child { font-weight: 600; white-space: nowrap; }
+  .api-method { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; color: white; }
+  .method-get { background: #0F6E56; }
+  .method-post { background: #185FA5; }
+  .method-sse { background: #534AB7; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AI 营销输入法 · Phase 1 技术方案</h1>
+  <div class="sub">基于 RIME 引擎 + DeepSeek AI 的营销话术输入法 · 自用验证版 · 本地服务器部署</div>
+  <div class="meta">
+    <span>版本: v2.0</span>
+    <span>日期: 2026-06-29</span>
+    <span>部署: 本地服务器 + Tailscale</span>
+    <span>月成本: ¥10-50</span>
+  </div>
+</div>
+
+<!-- ==================== 许可证分析 ==================== -->
+<h2>1. 许可证分析（必须先搞清楚）</h2>
+
+<div class="alert alert-red">
+  <div class="alert-title">关键发现：Trime 和 librime 许可证不同，直接影响商业化</div>
+  <p>调研后发现一个<strong>致命差异</strong>：</p>
+</div>
+
+<table>
+  <tr>
+    <th>组件</th>
+    <th>许可证</th>
+    <th>商用闭源</th>
+    <th>说明</th>
+  </tr>
+  <tr>
+    <td><strong>Trime</strong>（同文输入法 App）</td>
+    <td><span class="tag tag-red">GPL-3.0</span></td>
+    <td style="color:#A32D2D; font-weight:600;">不行</td>
+    <td>Fork 后修改并发布，必须开源全部代码，包括你的 AI 话术逻辑</td>
+  </tr>
+  <tr>
+    <td><strong>librime</strong>（RIME 引擎核心库）</td>
+    <td><span class="tag tag-green">BSD-3-Clause</span></td>
+    <td style="color:#0F6E56; font-weight:600;">可以</td>
+    <td>只需保留版权声明，可闭源商用，无传染性</td>
+  </tr>
+  <tr>
+    <td><strong>librime-android</strong>（Android 预编译包）</td>
+    <td><span class="tag tag-green">BSD-3-Clause</span></td>
+    <td style="color:#0F6E56; font-weight:600;">可以</td>
+    <td>社区维护的 Android AAR 打包，许可证跟随 librime</td>
+  </tr>
+</table>
+
+<div class="alert alert-amber">
+  <div class="alert-title">对你的影响</div>
+  <p><strong>Phase 1（自用）</strong>：GPL-3.0 不影响你——因为 GPL 义务仅在「分发」时触发，自己装自己手机上用，不分发 = 无义务。</p>
+  <p><strong>Phase 2/3（商业化）</strong>：如果继续用 Fork Trime 的方式，必须公开全部源码（包括 AI 话术、后端对接逻辑）。这在商业化阶段是不可接受的。</p>
+</div>
+
+<div class="alert alert-green">
+  <div class="alert-title">推荐策略：分两步走</div>
+  <p><strong>Phase 1</strong>：直接 Fork Trime，快速验证产品想法。自用不分发，无 GPL 风险。</p>
+  <p><strong>Phase 2 前</strong>：迁移到 <code>librime-android</code>（BSD）+ 自研 IME UI 壳。librime 负责拼音/笔画引擎，UI 完全自己写，彻底脱离 GPL 约束。这一步预计额外 3-4 周，但一劳永逸。</p>
+  <p>这样你用 Trime 省下的 3-5 个月引擎开发时间，在商业化前花 3-4 周迁移就能洗白，ROI 很高。</p>
+</div>
+
+<!-- ==================== 整体架构 ==================== -->
+<h2>2. 整体架构</h2>
+
+<div class="card">
+  <h3>三层架构</h3>
+  <table>
+    <tr><th>层级</th><th>组件</th><th>技术选型</th><th>职责</th></tr>
+    <tr>
+      <td rowspan="4"><strong>Android 应用层</strong></td>
+      <td>输入引擎</td>
+      <td>Phase 1: Trime (GPL)<br>Phase 2: librime-android (BSD)</td>
+      <td>拼音/笔画/英文输入，候选词管理</td>
+    </tr>
+    <tr>
+      <td>话术模块</td>
+      <td>Kotlin + Room</td>
+      <td>话术库本地缓存、分类浏览、搜索、一键输入</td>
+    </tr>
+    <tr>
+      <td>AI 模块</td>
+      <td>Kotlin + OkHttp + SSE</td>
+      <td>AI 文本润色、AI 自动回复，流式输出到输入框</td>
+    </tr>
+    <tr>
+      <td>键盘 UI</td>
+      <td>Trime 自定义 YAML 布局<br>(Phase 2: Jetpack Compose)</td>
+      <td>标准键盘 + 话术 Tab + AI 按钮</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><strong>后端服务层</strong></td>
+      <td>AI 代理</td>
+      <td>Python FastAPI / Node.js</td>
+      <td>转发 DeepSeek API，SSE 流式，密钥管理</td>
+    </tr>
+    <tr>
+      <td>话术管理 API</td>
+      <td>同上</td>
+      <td>话术 CRUD、分类管理、批量导入</td>
+    </tr>
+    <tr>
+      <td>用户系统</td>
+      <td>同上 + PostgreSQL</td>
+      <td>Phase 2 才需要，Phase 1 硬编码</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><strong>外部服务</strong></td>
+      <td>DeepSeek API</td>
+      <td>V3 + R1</td>
+      <td>LLM 推理，AI 润色和回复生成（云 API）</td>
+    </tr>
+    <tr>
+      <td>Tailscale</td>
+      <td>免费组网 VPN</td>
+      <td>手机随时随地访问本地后端，无需公网 IP</td>
+    </tr>
+    <tr>
+      <td>腾讯云 COS（可选）</td>
+      <td>对象存储</td>
+      <td>Phase 2 才需要，Phase 1 本地存储即可</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ==================== Phase 1 功能范围 ==================== -->
+<h2>3. 本地服务器部署方案</h2>
+
+<div class="alert alert-green">
+  <div class="alert-title">核心思路：后端跑在你自己的电脑上，手机通过 Tailscale 访问，零服务器费用</div>
+  <p>你的电脑（Windows 10, 8GB RAM）足够运行 FastAPI 后端（仅需 300MB 内存）。AI 推理交给 DeepSeek 云 API，不需要本地跑大模型。</p>
+</div>
+
+<h3>3.1 部署架构</h3>
+<table>
+  <tr><th>组件</th><th>运行位置</th><th>资源配置</th><th>说明</th></tr>
+  <tr>
+    <td>FastAPI 后端</td>
+    <td>你的电脑（Windows）</td>
+    <td>300MB 内存</td>
+    <td>话术 API + AI 代理，<code>python main.py</code> 直接运行</td>
+  </tr>
+  <tr>
+    <td>PostgreSQL 数据库</td>
+    <td>你的电脑（Windows）</td>
+    <td>200MB 内存</td>
+    <td>话术库存储，本地安装即可</td>
+  </tr>
+  <tr>
+    <td>话术管理后台</td>
+    <td>你的电脑（浏览器）</td>
+    <td>—</td>
+    <td><code>localhost:8000/admin</code> 直接访问</td>
+  </tr>
+  <tr>
+    <td>DeepSeek API</td>
+    <td>云端（DeepSeek 服务器）</td>
+    <td>—</td>
+    <td>你的后端转发请求，密钥存在本地 <code>.env</code></td>
+  </tr>
+  <tr>
+    <td>Tailscale</td>
+    <td>手机 + 电脑各装一个</td>
+    <td>几乎零开销</td>
+    <td>免费 VPN，自动穿透内网，手机随时随地连</td>
+  </tr>
+</table>
+
+<h3>3.2 Tailscale 网络配置</h3>
+<div class="card">
+  <p><strong>为什么选 Tailscale：</strong></p>
+  <ul>
+    <li>免费（个人版 100 台设备）</li>
+    <li>零配置：装上登录同一账号，自动组网</li>
+    <li>自动 NAT 穿透：不管你在哪个 WiFi/4G/5G，都能直连</li>
+    <li>比 frp/ngrok 简单 10 倍，比公网服务器安全（不暴露端口）</li>
+  </ul>
+  <p style="margin-top:12px;"><strong>安装步骤：</strong></p>
+  <ol>
+    <li>电脑：访问 <code>tailscale.com/download</code>，下载 Windows 版安装</li>
+    <li>手机：应用商店搜索「Tailscale」安装</li>
+    <li>两端用同一个账号登录（Google/微软/GitHub 任选）</li>
+    <li>电脑打开终端运行 <code>tailscale ip</code>，记下 IP（如 <code>100.64.0.1</code>）</li>
+    <li>手机浏览器访问 <code>http://100.64.0.1:8000</code> 验证连通</li>
+  </ol>
+  <p style="margin-top:12px; color:var(--text2);">App 端配置：<code>server_url = "http://100.64.0.1:8000"</code>（替换为你电脑的实际 Tailscale IP）</p>
+</div>
+
+<h3>3.3 本地 vs 云服务器对比</h3>
+<table>
+  <tr><th>维度</th><th>本地服务器（本方案）</th><th>云服务器（原方案）</th></tr>
+  <tr><td>月费用</td><td><strong>¥10-50</strong>（仅 DeepSeek API）</td><td>¥70-120（服务器+API+域名）</td></tr>
+  <tr><td>需要公网 IP</td><td>不需要（Tailscale 穿透）</td><td>需要</td></tr>
+  <tr><td>需要 ICP 备案</td><td>不需要</td><td>需要（1-2 周审核）</td></tr>
+  <tr><td>需要 HTTPS 证书</td><td>不需要（内网直连）</td><td>需要</td></tr>
+  <tr><td>电脑关机影响</td><td><span class="tag tag-amber">后端不可用</span></td><td>不受影响</td></tr>
+  <tr><td>Phase 2 迁移成本</td><td>改 1 行配置（BASE_URL）</td><td>无需迁移</td></tr>
+  <tr><td>年省费用</td><td><strong>≈ ¥800-1200</strong></td><td>—</td></tr>
+</table>
+
+<div class="alert alert-amber">
+  <div class="alert-title">唯一限制：电脑关机 = 服务中断</div>
+  <p>AI 功能依赖你的电脑运行后端。解决方案：</p>
+  <ul>
+    <li>Phase 1 自用阶段：电脑常开即可（设置不休眠）</li>
+    <li>如果用笔记本电脑：设置合盖不休眠（<code>powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_SLEEP</code>）</li>
+    <li>Phase 2 商业化时迁移到云服务器，代码零改动，只改 <code>.env</code> 中的 <code>BASE_URL</code></li>
+  </ul>
+</div>
+
+<!-- ==================== Phase 1 功能范围 ==================== -->
+<h2>4. Phase 1 功能范围（MVP）</h2>
+
+<div class="phase-box phase-1">
+  <strong>核心原则：砍到最小可用，2 周内装到自己手机上用起来</strong>
+</div>
+
+<h3>4.1 包含</h3>
+<table>
+  <tr><th>模块</th><th>功能</th><th>验收标准</th></tr>
+  <tr><td>拼音输入</td><td>Trime 默认拼音方案，开箱即用</td><td>能正常打字，候选词正常</td></tr>
+  <tr><td>话术 Tab</td><td>键盘上加一个「话术」按钮，点击弹出话术列表</td><td>能看到话术列表，点击一键输入到当前输入框</td></tr>
+  <tr><td>话术管理</td><td>后端 API + 简单管理界面，支持增删改查</td><td>能在网页上添加话术，手机端同步看到</td></tr>
+  <tr><td>AI 润色</td><td>选中文本 → 点 AI 按钮 → 流式输出润色结果</td><td>能在键盘上触发 AI，看到流式输出</td></tr>
+  <tr><td>话术分类</td><td>按场景分类（如：客户跟进、促单、售后）</td><td>能切换分类，快速找到话术</td></tr>
+</table>
+
+<h3>4.2 不包含（推迟到 Phase 2/3）</h3>
+<table>
+  <tr><th>功能</th><th>推迟原因</th><th>计划阶段</th></tr>
+  <tr><td>笔画输入</td><td>拼音够用，笔画引擎需要额外配置</td><td>Phase 2</td></tr>
+  <tr><td>语音/手写</td><td>非核心，依赖第三方 SDK</td><td>Phase 2</td></tr>
+  <tr><td>微信登录</td><td>自用阶段不需要用户系统</td><td>Phase 2</td></tr>
+  <tr><td>VIP 会员</td><td>无商业化的需要</td><td>Phase 2</td></tr>
+  <tr><td>AI Agent 对话</td><td>复杂度高，先做简单润色</td><td>Phase 3</td></tr>
+  <tr><td>分销提现</td><td>完全不需要</td><td>Phase 3</td></tr>
+</table>
+
+<!-- ==================== 模块拆分 ==================== -->
+<h2>5. 模块拆分与任务清单</h2>
+
+<h3>5.1 Android 端（5 个模块）</h3>
+<table>
+  <tr><th>#</th><th>模块</th><th>工作内容</th><th>预估工时</th></tr>
+  <tr><td>A1</td><td>Fork & 编译 Trime</td><td>Clone 仓库、初始化 submodule、配置 NDK/CMake、编译出 debug APK</td><td>2-3 天</td></tr>
+  <tr><td>A2</td><td>键盘布局定制</td><td>编写 <code>.trime.yaml</code> 配置，在键盘上加「话术」「AI」按钮，绑定点击事件</td><td>3-5 天</td></tr>
+  <tr><td>A3</td><td>话术面板 UI</td><td>点击「话术」弹出 RecyclerView 面板，展示分类 Tab + 话术列表，点击一键输入</td><td>3-5 天</td></tr>
+  <tr><td>A4</td><td>AI 润色交互</td><td>选中文本 → 点「AI」→ 调后端 SSE 接口 → 流式展示结果 → 确认输入</td><td>3-5 天</td></tr>
+  <tr><td>A5</td><td>本地数据层</td><td>Room 数据库，话术缓存表、用户配置表，启动时从后端同步</td><td>2-3 天</td></tr>
+</table>
+
+<h3>5.2 后端端（4 个模块）</h3>
+<table>
+  <tr><th>#</th><th>模块</th><th>工作内容</th><th>预估工时</th></tr>
+  <tr><td>B1</td><td>项目骨架 + 本地环境</td><td>FastAPI 项目初始化、PostgreSQL 本地安装、<code>.env</code> 配置、PM2/NSSM 进程守护</td><td>1 天</td></tr>
+  <tr><td>B2</td><td>话术 CRUD API</td><td>话术/分类的增删改查，批量导入（CSV/Excel），分页查询</td><td>2-3 天</td></tr>
+  <tr><td>B3</td><td>AI 代理 + SSE</td><td>DeepSeek API 对接，SSE 流式转发，Prompt 模板管理</td><td>2-3 天</td></tr>
+  <tr><td>B4</td><td>话术管理后台</td><td>简易 Web 管理页面（HTML+JS），增删改查话术，批量导入</td><td>2-3 天</td></tr>
+</table>
+
+<div class="alert alert-blue">
+  <div class="alert-title">本地部署省掉了什么</div>
+  <p>相比云服务器方案，本地部署 <strong>不需要</strong>：Docker 配置、Nginx 反代、HTTPS 证书、域名购买、ICP 备案。直接 <code>python main.py</code> 运行，省 2-3 天配置时间。</p>
+</div>
+
+<h3>5.3 总工时估算</h3>
+<table>
+  <tr><th>部分</th><th>工时</th><th>说明</th></tr>
+  <tr><td>Android 端</td><td>13-21 天</td><td>关键路径在 A1 编译 + A2 布局定制</td></tr>
+  <tr><td>后端端</td><td>6-9 天</td><td>本地部署省去 Docker/Nginx 配置，快 1-2 天</td></tr>
+  <tr><td>联调测试</td><td>3-5 天</td><td>端到端调试</td></tr>
+  <tr><td><strong>合计</strong></td><td><strong>22-35 天</strong></td><td>约 4-7 周（全职）或 8-12 周（兼职）</td></tr>
+</table>
+
+<!-- ==================== 键盘布局方案 ==================== -->
+<h2>6. 键盘布局方案</h2>
+
+<div class="card">
+  <h3>Trime 键盘布局定制原理</h3>
+  <p>Trime 的键盘完全由 YAML 配置文件驱动，不需要改 Java/Kotlin 源码：</p>
+  <ol>
+    <li>键盘上每个按键在 <code>.trime.yaml</code> 中定义</li>
+    <li>按键可以绑定 <code>command</code>（发送字符/执行动作/切换键盘）</li>
+    <li>支持多键盘切换（主键盘 → 话术键盘 → 返回主键盘）</li>
+    <li>支持自定义候选栏组件</li>
+  </ol>
+</div>
+
+<h3>6.1 键盘布局设计</h3>
+<p>在标准拼音键盘基础上，修改底部工具栏，加入两个按钮：</p>
+
+<pre><code><span class="cmt"># custom.trime.yaml — 自定义键盘布局</span>
+<span class="kw">keyboards</span>: [ <span class="str">default</span>, <span class="str">huashu</span>, <span class="str">ai_polish</span> ]
+
+<span class="kw">default</span>:
+  <span class="kw">name</span>: <span class="str">"主键盘"</span>
+  <span class="kw">keys</span>:
+    <span class="cmt"># ... 标准拼音键位 ...</span>
+    <span class="cmt"># 底部工具栏加入两个按钮</span>
+    - { <span class="kw">click</span>: <span class="str">"commit_text"</span>, <span class="kw">label</span>: <span class="str">"话术"</span>, <span class="kw">command</span>: <span class="str">"set_keyboard=huashu"</span> }
+    - { <span class="kw">click</span>: <span class="str">"commit_text"</span>, <span class="kw">label</span>: <span class="str">"AI"</span>, <span class="kw">command</span>: <span class="str">"set_keyboard=ai_polish"</span> }
+
+<span class="kw">huashu</span>:
+  <span class="kw">name</span>: <span class="str">"话术面板"</span>
+  <span class="kw">rows</span>:
+    <span class="cmt"># 分类 Tab 行</span>
+    - [ { <span class="kw">label</span>: <span class="str">"全部"</span> }, { <span class="kw">label</span>: <span class="str">"促单"</span> }, { <span class="kw">label</span>: <span class="str">"售后"</span> }, ... ]
+    <span class="cmt"># 话术列表行（通过自定义 CandidateView 渲染）</span>
+    <span class="cmt"># 底部返回按钮</span>
+    - [ { <span class="kw">label</span>: <span class="str">"← 返回"</span>, <span class="kw">command</span>: <span class="str">"set_keyboard=default"</span> } ]</code></pre>
+
+<h3>6.2 话术面板交互流程</h3>
+<table>
+  <tr><th>步骤</th><th>用户操作</th><th>系统响应</th></tr>
+  <tr><td>1</td><td>在任意 App 输入框中唤起键盘</td><td>键盘弹出，底部显示「话术」「AI」按钮</td></tr>
+  <tr><td>2</td><td>点击「话术」</td><td>键盘切换到话术面板，显示分类 Tab + 话术列表</td></tr>
+  <tr><td>3</td><td>点击分类 Tab（如「促单」）</td><td>列表筛选到该分类话术</td></tr>
+  <tr><td>4</td><td>点击某条话术</td><td>话术文本直接输入到当前输入框，键盘自动切回主键盘</td></tr>
+  <tr><td>5</td><td>点击「← 返回」</td><td>切回主键盘，不输入任何内容</td></tr>
+</table>
+
+<h3>6.3 AI 润色交互流程</h3>
+<table>
+  <tr><th>步骤</th><th>用户操作</th><th>系统响应</th></tr>
+  <tr><td>1</td><td>在输入框中输入一段文字（如 "这个多少钱"）</td><td>正常打字</td></tr>
+  <tr><td>2</td><td>选中输入框中的文字</td><td>系统高亮选中文本</td></tr>
+  <tr><td>3</td><td>点击键盘「AI」按钮</td><td>键盘弹出 AI 面板，显示 "AI 润色中..."</td></tr>
+  <tr><td>4</td><td>等待</td><td>后端调用 DeepSeek，SSE 流式返回润色结果，逐字显示在 AI 面板</td></tr>
+  <tr><td>5</td><td>看到结果满意</td><td>点击「使用」按钮，替换输入框中的原文本</td></tr>
+  <tr><td>6</td><td>不满意</td><td>点击「重新生成」或「取消」</td></tr>
+</table>
+
+<!-- ==================== 数据库设计 ==================== -->
+<h2>7. 数据库设计</h2>
+
+<h3>7.1 后端 PostgreSQL</h3>
+<pre><code><span class="cmt">-- 话术分类表</span>
+<span class="kw">CREATE TABLE</span> script_category (
+    id          <span class="type">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+    name        <span class="type">VARCHAR</span>(64) <span class="kw">NOT NULL</span>,      <span class="cmt">-- 分类名称：促单、售后、客户跟进</span>
+    sort_order  <span class="type">INT</span> <span class="kw">DEFAULT</span> 0,              <span class="cmt">-- 排序权重</span>
+    icon        <span class="type">VARCHAR</span>(256),                   <span class="cmt">-- 分类图标 URL（可选）</span>
+    created_at  <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>(),
+    updated_at  <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>()
+);
+
+<span class="cmt">-- 话术表</span>
+<span class="kw">CREATE TABLE</span> script (
+    id            <span class="type">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+    category_id   <span class="type">INT</span> <span class="kw">REFERENCES</span> script_category(id) <span class="kw">ON DELETE</span> <span class="kw">CASCADE</span>,
+    title         <span class="type">VARCHAR</span>(128) <span class="kw">NOT NULL</span>,    <span class="cmt">-- 话术标题（列表展示用）</span>
+    content       <span class="type">TEXT</span> <span class="kw">NOT NULL</span>,             <span class="cmt">-- 话术正文</span>
+    tags          <span class="type">VARCHAR</span>(256)[],               <span class="cmt">-- 标签数组，用于搜索</span>
+    sort_order    <span class="type">INT</span> <span class="kw">DEFAULT</span> 0,
+    is_active     <span class="type">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">TRUE</span>,     <span class="cmt">-- 是否启用</span>
+    use_count     <span class="type">INT</span> <span class="kw">DEFAULT</span> 0,              <span class="cmt">-- 使用次数（排序参考）</span>
+    created_at    <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>(),
+    updated_at    <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>()
+);
+
+<span class="cmt">-- AI Prompt 模板表</span>
+<span class="kw">CREATE TABLE</span> ai_prompt_template (
+    id            <span class="type">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+    name          <span class="type">VARCHAR</span>(64) <span class="kw">NOT NULL</span>,      <span class="cmt">-- 模板名称：润色、扩写、缩写、改语气</span>
+    system_prompt <span class="type">TEXT</span> <span class="kw">NOT NULL</span>,            <span class="cmt">-- System Prompt</span>
+    model         <span class="type">VARCHAR</span>(32) <span class="kw">DEFAULT</span> <span class="str">'deepseek-chat'</span>,  <span class="cmt">-- deepseek-chat / deepseek-reasoner</span>
+    temperature   <span class="type">FLOAT</span> <span class="kw">DEFAULT</span> 0.7,
+    max_tokens    <span class="type">INT</span> <span class="kw">DEFAULT</span> 1024,
+    is_active     <span class="type">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">TRUE</span>,
+    created_at    <span class="type">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="kw">NOW</span>()
+);
+
+<span class="cmt">-- 索引</span>
+<span class="kw">CREATE INDEX</span> idx_script_category <span class="kw">ON</span> script(category_id);
+<span class="kw">CREATE INDEX</span> idx_script_tags <span class="kw">ON</span> script <span class="kw">USING</span> GIN(tags);
+<span class="kw">CREATE INDEX</span> idx_script_active <span class="kw">ON</span> script(is_active, sort_order);</code></pre>
+
+<h3>7.2 Android 端 Room 数据库</h3>
+<pre><code><span class="cmt">// 话术缓存表（从后端同步）</span>
+<span class="kw">@Entity</span>(tableName = <span class="str">"scripts"</span>)
+<span class="kw">data class</span> <span class="type">ScriptEntity</span>(
+    <span class="kw">@PrimaryKey</span> <span class="kw">val</span> id: <span class="type">Int</span>,
+    <span class="kw">val</span> categoryId: <span class="type">Int</span>,
+    <span class="kw">val</span> categoryName: <span class="type">String</span>,
+    <span class="kw">val</span> title: <span class="type">String</span>,
+    <span class="kw">val</span> content: <span class="type">String</span>,
+    <span class="kw">val</span> tags: <span class="type">List</span>&lt;<span class="type">String</span>&gt;,
+    <span class="kw">val</span> sortOrder: <span class="type">Int</span>,
+    <span class="kw">val</span> useCount: <span class="type">Int</span>,
+    <span class="kw">val</span> syncedAt: <span class="type">Long</span>  <span class="cmt">// 最后同步时间戳</span>
+)
+
+<span class="cmt">// 用户配置表</span>
+<span class="kw">@Entity</span>(tableName = <span class="str">"user_config"</span>)
+<span class="kw">data class</span> <span class="type">UserConfigEntity</span>(
+    <span class="kw">@PrimaryKey</span> <span class="kw">val</span> key: <span class="type">String</span>,
+    <span class="kw">val</span> value: <span class="type">String</span>
+)
+<span class="cmt">// 示例: ("server_url", "http://100.64.0.1:8000")  ← Tailscale IP
+//       ("last_sync", "1719600000000")
+//       ("ai_polish_template", "1")</span></code></pre>
+
+<!-- ==================== API 设计 ==================== -->
+<h2>8. API 接口设计</h2>
+
+<h3>8.1 话术管理 API</h3>
+<table>
+  <tr><th>方法</th><th>路径</th><th>功能</th><th>请求体/参数</th></tr>
+  <tr>
+    <td><span class="api-method method-get">GET</span></td>
+    <td><code>/api/categories</code></td>
+    <td>获取所有分类</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-get">GET</span></td>
+    <td><code>/api/scripts?category_id=&amp;keyword=&amp;page=&amp;size=</code></td>
+    <td>分页查询话术</td>
+    <td>category_id（可选）、keyword（可选）</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-get">GET</span></td>
+    <td><code>/api/scripts/all</code></td>
+    <td>获取全部话术（客户端全量同步用）</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-post">POST</span></td>
+    <td><code>/api/scripts</code></td>
+    <td>新建话术</td>
+    <td><code>{category_id, title, content, tags[]}</code></td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-post">POST</span></td>
+    <td><code>/api/scripts/batch</code></td>
+    <td>批量导入话术</td>
+    <td><code>[{title, content, category_name, tags[]}, ...]</code></td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-post">POST</span></td>
+    <td><code>/api/scripts/{id}/use</code></td>
+    <td>记录使用次数 +1</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-post">POST</span></td>
+    <td><code>/api/scripts/{id}</code></td>
+    <td>编辑话术</td>
+    <td><code>{title, content, tags[], category_id}</code></td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-post">POST</span></td>
+    <td><code>/api/scripts/{id}/delete</code></td>
+    <td>删除话术</td>
+    <td>—</td>
+  </tr>
+</table>
+
+<h3>8.2 AI 接口（SSE 流式）</h3>
+<table>
+  <tr><th>方法</th><th>路径</th><th>功能</th><th>请求体</th></tr>
+  <tr>
+    <td><span class="api-method method-sse">SSE</span></td>
+    <td><code>/api/ai/polish</code></td>
+    <td>AI 文本润色</td>
+    <td><code>{text, template_id?}</code></td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-sse">SSE</span></td>
+    <td><code>/api/ai/reply</code></td>
+    <td>AI 自动回复生成</td>
+    <td><code>{context, customer_msg, template_id?}</code></td>
+  </tr>
+  <tr>
+    <td><span class="api-method method-get">GET</span></td>
+    <td><code>/api/ai/templates</code></td>
+    <td>获取 AI 模板列表</td>
+    <td>—</td>
+  </tr>
+</table>
+
+<h3>8.3 AI 润色 SSE 交互示例</h3>
+<pre><code><span class="cmt"># 客户端请求</span>
+POST /api/ai/polish HTTP/1.1
+Content-Type: application/json
+
+{ "text": "这个多少钱", "template_id": 1 }
+
+<span class="cmt"># 服务端响应（SSE 流式）</span>
+HTTP/1.1 200 OK
+Content-Type: text/event-stream
+
+data: {"content": "您", "done": false}
+
+data: {"content": "好", "done": false}
+
+data: {"content": "，请问", "done": false}
+
+data: {"content": "这款产品目前售价是多少呢？", "done": false}
+
+data: {"content": "", "done": true, "full_text": "您好，请问这款产品目前售价是多少呢？"}</code></pre>
+
+<h3>8.4 后端 AI 代理核心逻辑（Python 伪代码）</h3>
+<pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+<span class="kw">import</span> httpx
+
+router = APIRouter()
+DEEPSEEK_API_KEY = <span class="str">"sk-xxx"</span>  <span class="cmt"># 从环境变量读取，绝不硬编码</span>
+
+<span class="kw">@router</span>.post(<span class="str">"/api/ai/polish"</span>)
+<span class="kw">async def</span> <span class="type">ai_polish</span>(req: PolishRequest):
+    template = <span class="kw">await</span> get_template(req.template_id <span class="kw">or</span> 1)
+
+    <span class="kw">async def</span> <span class="type">stream</span>():
+        <span class="kw">async with</span> httpx.AsyncClient() <span class="kw">as</span> client:
+            <span class="kw">async with</span> client.stream(
+                <span class="str">"POST"</span>,
+                <span class="str">"https://api.deepseek.com/chat/completions"</span>,
+                json={
+                    <span class="str">"model"</span>: template.model,        <span class="cmt"># "deepseek-chat" (V3)</span>
+                    <span class="str">"messages"</span>: [
+                        {<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: template.system_prompt},
+                        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: req.text},
+                    ],
+                    <span class="str">"temperature"</span>: template.temperature,
+                    <span class="str">"max_tokens"</span>: template.max_tokens,
+                    <span class="str">"stream"</span>: <span class="kw">True</span>,
+                },
+                headers={<span class="str">"Authorization"</span>: <span class="str">f"Bearer </span>{DEEPSEEK_API_KEY}<span class="str">"</span>},
+                timeout=60,
+            ) <span class="kw">as</span> resp:
+                <span class="kw">async for</span> line <span class="kw">in</span> resp.aiter_lines():
+                    <span class="kw">if</span> line.startswith(<span class="str">"data: "</span>):
+                        <span class="cmt"># 转发 DeepSeek SSE → 客户端 SSE</span>
+                        <span class="kw">yield</span> <span class="str">f"data: {line[6:]}\n\n"</span>
+
+    <span class="kw">return</span> StreamingResponse(stream(), media_type=<span class="str">"text/event-stream"</span>)</code></pre>
+
+<!-- ==================== 技术栈 ==================== -->
+<h2>9. 技术栈清单</h2>
+
+<h3>9.1 Android 端</h3>
+<table>
+  <tr><th>组件</th><th>选型</th><th>版本</th><th>说明</th></tr>
+  <tr><td>输入引擎</td><td>Trime</td><td>v3.3.10</td><td>最新稳定版，2026-06-28 发布</td></tr>
+  <tr><td>最低 SDK</td><td>Android 5.0</td><td>minSdk 21</td><td>Trime 默认配置</td></tr>
+  <tr><td>目标 SDK</td><td>Android 15</td><td>targetSdk 35</td><td>—</td></tr>
+  <tr><td>语言</td><td>Kotlin</td><td>2.0+</td><td>Trime 已全面 Kotlin 化</td></tr>
+  <tr><td>UI 框架</td><td>Android Views + YAML</td><td>—</td><td>Trime 使用传统 View 系统，非 Compose</td></tr>
+  <tr><td>本地数据库</td><td>Room</td><td>2.6+</td><td>话术缓存、用户配置</td></tr>
+  <tr><td>网络</td><td>OkHttp</td><td>4.12+</td><td>SSE 流式请求</td></tr>
+  <tr><td>DI</td><td>Kodein</td><td>7.x</td><td>Trime 已使用 Kodein</td></tr>
+</table>
+
+<h3>9.2 后端（本地部署）</h3>
+<table>
+  <tr><th>组件</th><th>选型</th><th>说明</th></tr>
+  <tr><td>语言/框架</td><td>Python 3.12 + FastAPI</td><td>异步、SSE 原生支持、开发效率高</td></tr>
+  <tr><td>数据库</td><td>PostgreSQL 16（本地安装）</td><td>支持数组类型（tags）、全文搜索</td></tr>
+  <tr><td>缓存</td><td>Redis 7（可选）</td><td>Phase 1 可省略，数据量小</td></tr>
+  <tr><td>进程守护</td><td>PM2 或 NSSM</td><td>后端开机自启，崩溃自动重启</td></tr>
+  <tr><td>网络穿透</td><td>Tailscale（免费）</td><td>手机随时随地访问本地后端</td></tr>
+  <tr><td>管理后台</td><td>HTML + Alpine.js</td><td>轻量，不需要 React/Vue</td></tr>
+  <tr><td>AI 模型</td><td>DeepSeek V3 (deepseek-chat)</td><td>通用润色，性价比最高</td></tr>
+  <tr><td></td><td>DeepSeek R1 (deepseek-reasoner)</td><td>复杂回复，推理能力强</td></tr>
+</table>
+<p style="color:var(--text2); font-size:13px; margin-top:8px;">本地部署<strong>不需要</strong>：Docker、Nginx、HTTPS 证书、域名、ICP 备案。相比云方案减少 3-5 个配置步骤。</p>
+
+<h3>9.3 DeepSeek API 定价参考</h3>
+<table>
+  <tr><th>模型</th><th>输入价格</th><th>输出价格</th><th>说明</th></tr>
+  <tr><td>deepseek-chat (V3)</td><td>¥0.5 / 百万 token</td><td>¥2 / 百万 token</td><td>缓存命中更便宜</td></tr>
+  <tr><td>deepseek-reasoner (R1)</td><td>¥2 / 百万 token</td><td>¥8 / 百万 token</td><td>带思考过程</td></tr>
+</table>
+<p style="color:var(--text2); font-size:13px;">自用阶段估算：每天 50 次 AI 润色 × 平均 200 字 ≈ 每天 1 万 token ≈ <strong>每月 ¥1-3</strong>，几乎免费。</p>
+
+<!-- ==================== 开发步骤 ==================== -->
+<h2>10. 开发步骤（按顺序执行）</h2>
+
+<div class="timeline">
+  <div class="timeline-item">
+    <div class="timeline-date">第 1 周</div>
+    <div class="timeline-title">环境搭建 + Trime 编译 + 本地后端初始化</div>
+    <div class="timeline-desc">
+      <ul>
+        <li>安装 Android Studio + NDK + CMake</li>
+        <li>Clone Trime 仓库，<code>git submodule update --init --recursive</code></li>
+        <li>编译出 debug APK，安装到自己手机上验证基础输入</li>
+        <li>电脑安装 PostgreSQL 16 + Python 3.12</li>
+        <li>FastAPI 项目初始化，<code>python main.py</code> 本地跑通</li>
+        <li>安装 Tailscale（电脑+手机），验证手机能访问 <code>http://100.x.x.x:8000</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">第 2 周</div>
+    <div class="timeline-title">后端 API + 话术管理后台</div>
+    <div class="timeline-desc">
+      <ul>
+        <li>PostgreSQL 建表，编写话术 CRUD API</li>
+        <li>话术管理 Web 页面（增删改查 + 批量导入）</li>
+        <li>DeepSeek API 对接 + SSE 流式转发</li>
+        <li>配置 PM2/NSSM 进程守护，后端开机自启</li>
+        <li>Postman 测试全部接口</li>
+      </ul>
+    </div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">第 3-4 周</div>
+    <div class="timeline-title">键盘布局定制 + 话术面板</div>
+    <div class="timeline-desc">
+      <ul>
+        <li>编写 <code>.trime.yaml</code>，加「话术」「AI」按钮</li>
+        <li>实现话术面板 UI（分类 Tab + 话术列表）</li>
+        <li>Room 数据库 + 后端话术同步逻辑</li>
+        <li>App 配置 Tailscale IP 作为 <code>BASE_URL</code></li>
+        <li>点击话术 → 一键输入到输入框</li>
+      </ul>
+    </div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">第 5-6 周</div>
+    <div class="timeline-title">AI 润色功能 + 联调</div>
+    <div class="timeline-desc">
+      <ul>
+        <li>OkHttp SSE 客户端，对接后端 <code>/api/ai/polish</code></li>
+        <li>AI 面板 UI（流式展示 + 使用/重新生成/取消）</li>
+        <li>手机在不同网络（WiFi/4G）下测试 Tailscale 连通性</li>
+        <li>端到端联调测试</li>
+        <li>填入你的实际话术数据，开始自用</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 风险与对策 ==================== -->
+<h2>11. 风险评估与对策</h2>
+
+<table>
+  <tr><th>风险</th><th>等级</th><th>影响</th><th>对策</th></tr>
+  <tr>
+    <td>Trime 编译失败（NDK/CMake 版本不匹配）</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>阻塞 1-3 天</td>
+    <td>严格按照 Trime 文档的 NDK 版本，用 Docker 编译环境兜底</td>
+  </tr>
+  <tr>
+    <td>GPL-3.0 传染性</td>
+    <td><span class="tag tag-red">高</span></td>
+    <td>商业化时必须开源</td>
+    <td>Phase 1 自用无风险；Phase 2 前迁移到 librime-android (BSD)</td>
+  </tr>
+  <tr>
+    <td>Trime YAML 布局无法满足话术面板需求</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>需要改 Trime 源码</td>
+    <td>先用 YAML 配置试；如果不够，直接在 Trime 源码中加自定义 View</td>
+  </tr>
+  <tr>
+    <td>IME 中获取输入框选中文本困难</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>AI 润色无法获取原文</td>
+    <td>用 InputConnection.getSelectedText() 或 getExtractedText()，Phase 1 可以让用户手动粘贴</td>
+  </tr>
+  <tr>
+    <td>DeepSeek API 不稳定</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>AI 功能不可用</td>
+    <td>后端加重试 + 超时处理；可选备用模型（通义千问免费额度）</td>
+  </tr>
+  <tr>
+    <td>电脑关机/休眠导致后端不可用</td>
+    <td><span class="tag tag-amber">中</span></td>
+    <td>手机无法使用 AI 功能</td>
+    <td>设置电脑不休眠 + PM2/NSSM 开机自启；Phase 2 迁移上云后消除</td>
+  </tr>
+  <tr>
+    <td>Tailscale 连接不稳定</td>
+    <td><span class="tag tag-amber">低</span></td>
+    <td>偶发连接超时</td>
+    <td>Tailscale 稳定性很高（基于 WireGuard）；备用方案：同一 WiFi 直连电脑局域网 IP</td>
+  </tr>
+  <tr>
+    <td>8GB 内存不够用</td>
+    <td><span class="tag tag-amber">低</span></td>
+    <td>系统卡顿</td>
+    <td>FastAPI+PostgreSQL 仅占 500MB；不跑本地大模型就没问题</td>
+  </tr>
+</table>
+
+<!-- ==================== 迁移路径 ==================== -->
+<h2>12. Phase 2 迁移路径（脱 GPL + 上云）</h2>
+
+<div class="alert alert-blue">
+  <div class="alert-title">Phase 2 需要两件事：① 脱离 GPL（换 librime-android） ② 本地上云（改配置）</div>
+</div>
+
+<h3>12.1 脱 GPL（换引擎）</h3>
+
+<table>
+  <tr><th>步骤</th><th>工作内容</th><th>预估工时</th></tr>
+  <tr><td>1</td><td>引入 <code>librime-android</code> AAR，初始化 RIME 引擎</td><td>2-3 天</td></tr>
+  <tr><td>2</td><td>自研 <code>InputMethodService</code> 壳，接管 onCreateInputView</td><td>3-5 天</td></tr>
+  <tr><td>3</td><td>自研键盘 UI（Jetpack Compose），复用 Phase 1 的话术面板和 AI 面板</td><td>5-7 天</td></tr>
+  <tr><td>4</td><td>RIME 方案配置迁移（拼音词典、候选逻辑）</td><td>2-3 天</td></tr>
+  <tr><td>5</td><td>测试 + 修复</td><td>3-5 天</td></tr>
+  <tr><td><strong>合计</strong></td><td></td><td><strong>15-23 天（3-4 周）</strong></td></tr>
+</table>
+
+<p style="color:var(--text2); font-size:13px; margin-top:8px;">
+  librime-android 项目地址: <code>https://github.com/HNIdesu/librime-android</code>（社区维护，BSD 许可证，提供预编译 AAR）
+</p>
+
+<h3>12.2 本地 → 云服务器迁移</h3>
+<table>
+  <tr><th>步骤</th><th>工作内容</th><th>预估工时</th></tr>
+  <tr><td>1</td><td>购买云服务器（2核4G）+ 域名 + ICP 备案</td><td>1-2 周（备案审核）</td></tr>
+  <tr><td>2</td><td>服务器安装 PostgreSQL + Python，部署 FastAPI 代码</td><td>0.5 天</td></tr>
+  <tr><td>3</td><td>配置 Nginx + HTTPS 证书（Let's Encrypt 免费）</td><td>0.5 天</td></tr>
+  <tr><td>4</td><td>App 端修改 <code>BASE_URL</code>：从 Tailscale IP 改为 <code>https://api.yourdomain.com</code></td><td>5 分钟</td></tr>
+  <tr><td>5</td><td>数据迁移：导出本地 PostgreSQL → 导入云 PostgreSQL</td><td>1 小时</td></tr>
+  <tr><td><strong>合计</strong></td><td>代码零改动</td><td><strong>实际开发 1 天 + 备案等待</strong></td></tr>
+</table>
+
+<div class="alert alert-green">
+  <div class="alert-title">本地部署的迁移优势</div>
+  <p>因为 Phase 1 本地部署时<strong>代码和云部署完全一样</strong>，只是配置不同。迁移上云时：</p>
+  <ul>
+    <li><strong>后端代码</strong>：零改动，直接 <code>git push</code> 到服务器</li>
+    <li><strong>App 代码</strong>：零改动，只改 <code>.env</code> 里的 <code>BASE_URL</code></li>
+    <li><strong>数据库</strong>：<code>pg_dump</code> + <code>pg_restore</code> 一行命令迁移</li>
+    <li><strong>不需要重写任何业务逻辑</strong></li>
+  </ul>
+</div>
+
+<!-- ==================== 成本汇总 ==================== -->
+<h2>13. Phase 1 成本汇总（本地部署）</h2>
+
+<table>
+  <tr><th>项目</th><th>一次性费用</th><th>月运营</th><th>说明</th></tr>
+  <tr><td>云服务器</td><td>—</td><td><strong>¥0</strong></td><td>用你自己的电脑，不花钱</td></tr>
+  <tr><td>域名</td><td>—</td><td><strong>¥0</strong></td><td>用 Tailscale IP，不需要域名</td></tr>
+  <tr><td>ICP 备案</td><td>—</td><td><strong>¥0</strong></td><td>不需要备案</td></tr>
+  <tr><td>HTTPS 证书</td><td>—</td><td><strong>¥0</strong></td><td>内网直连，不需要 HTTPS</td></tr>
+  <tr><td>Tailscale</td><td>—</td><td><strong>¥0</strong></td><td>个人版免费（100 台设备）</td></tr>
+  <tr><td>DeepSeek API</td><td>—</td><td>¥1-10</td><td>自用量极小</td></tr>
+  <tr><td>PostgreSQL</td><td>—</td><td>¥0</td><td>开源免费，本地安装</td></tr>
+  <tr><td>Android 开发者账号</td><td>¥0（自用）</td><td>—</td><td>Phase 2 上架才需要 ¥25 注册费</td></tr>
+  <tr><td><strong>合计</strong></td><td><strong>≈ ¥0</strong></td><td><strong>≈ ¥1-10/月</strong></td><td>仅 DeepSeek API 调用费</td></tr>
+</table>
+
+<div class="alert alert-green">
+  <div class="alert-title">总结</div>
+  <p>Phase 1 本地部署总投入：<strong>¥0 启动 + ¥1-10/月运营</strong> + 你的时间（4-7 周全职）。</p>
+  <p>产出：一个装在自己手机上的 AI 营销输入法，能打字、能用话术、能 AI 润色，随时随地可用（通过 Tailscale）。</p>
+  <p>对比云服务器方案：年省 ¥800-1200，且免去除备案/域名/HTTPS 的配置麻烦。</p>
+  <p>验证后进入 Phase 2，花 3-4 周脱 GPL + 1 天上云，开放给别人用。</p>
+</div>
+
+</body>
+</html>

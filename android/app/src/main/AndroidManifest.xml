@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.aiime">
+
+    <!-- 网络权限 (AI API 调用) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- 语音输入预留 (BiBi 原有，可选) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- 悬浮窗 (BiBi 原有，话术/AI跨应用使用) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- 应用主体：AI营销输入法设置页 -->
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="AI营销输入法"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MarketingIME">
+
+        <!-- 主 Activity：设置页 -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="AI营销输入法">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 输入法 Service -->
+        <service
+            android:name=".ime.MarketingKeyboardService"
+            android:exported="true"
+            android:permission="android.permission.BIND_INPUT_METHOD">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/method" />
+        </service>
+
+        <!-- 设置 Activity -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="设置" />
+
+    </application>
+
+</manifest>
