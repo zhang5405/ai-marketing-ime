@@ -24,6 +24,17 @@ public class Rime {
         return loaded;
     }
 
+    // ===== Native -> Java Callback (required by .so's JNI_OnLoad) =====
+
+    /**
+     * Called by native code to deliver messages from RIME engine.
+     * Signature: (I[Ljava/lang/Object;)V
+     * The .so's GlobalRefSingleton looks for this exact method.
+     */
+    public static void handleRimeMessage(int messageId, Object[] args) {
+        // Ignored for now — native code just needs the method to exist
+    }
+
     // ===== Lifecycle =====
 
     /** Initialize RIME engine */
