@@ -1,7 +1,7 @@
 package com.aiime.ime
 
 import android.content.Context
-import com.osfans.trime.core.RimeJni
+import com.osfans.trime.core.Rime
 import com.osfans.trime.core.RimeProto
 import java.io.File
 import java.io.FileOutputStream
@@ -47,7 +47,7 @@ class RimeEngine(private val context: Context) {
 
         try {
             // 检查 JNI 是否可用
-            if (!RimeJni.isLoaded()) {
+            if (!Rime.isLoaded()) {
                 android.util.Log.e("RimeEngine", "librime_jni.so not loaded, falling back to simulator")
                 initialized = true
                 return
@@ -57,7 +57,7 @@ class RimeEngine(private val context: Context) {
             prepareRimeData()
 
             // 启动 RIME 引擎
-            RimeJni.startupRime(
+            Rime.startupRime(
                 sharedDataDir.absolutePath,
                 userDataDir.absolutePath,
                 "1.0.0",
@@ -74,8 +74,8 @@ class RimeEngine(private val context: Context) {
     fun destroy() {
         if (!initialized) return
         try {
-            if (RimeJni.isLoaded()) {
-                RimeJni.exitRime()
+            if (Rime.isLoaded()) {
+                Rime.exitRime()
             }
         } catch (e: Exception) {
             android.util.Log.e("RimeEngine", "Error destroying RIME: ${e.message}")
@@ -94,19 +94,19 @@ class RimeEngine(private val context: Context) {
         }
 
         // 如果 JNI 未加载，使用本地模拟器
-        if (!initialized || !RimeJni.isLoaded()) {
+        if (!initialized || !Rime.isLoaded()) {
             return localPinyinSimulator(pinyinInput)
         }
 
         return try {
             // 先清除之前的组合状态
-            RimeJni.clearRimeComposition()
+            Rime.clearRimeComposition()
 
             // 模拟按键序列输入拼音
-            RimeJni.simulateRimeKeySequence(pinyinInput)
+            Rime.simulateRimeKeySequence(pinyinInput)
 
             // 获取上下文（包含组合文本和候选词）
-            val context = RimeJni.getRimeContext()
+            val context = Rime.getRimeContext()
             val composition = context?.composition
             val menu = context?.menu
 
@@ -127,12 +127,12 @@ class RimeEngine(private val context: Context) {
      * 选中某个候选词，返回提交的文本
      */
     fun selectCandidate(index: Int): String? {
-        if (!initialized || !RimeJni.isLoaded()) return null
+        if (!initialized || !Rime.isLoaded()) return null
 
         return try {
-            RimeJni.selectRimeCandidate(index, false)
-            RimeJni.commitRimeComposition()
-            val commit = RimeJni.getRimeCommit()
+            Rime.selectRimeCandidate(index, false)
+            Rime.commitRimeComposition()
+            val commit = Rime.getRimeCommit()
             commit?.text
         } catch (e: Exception) {
             android.util.Log.e("RimeEngine", "selectCandidate error: ${e.message}")
@@ -144,9 +144,9 @@ class RimeEngine(private val context: Context) {
      * 清除当前组合状态
      */
     fun clear() {
-        if (!initialized || !RimeJni.isLoaded()) return
+        if (!initialized || !Rime.isLoaded()) return
         try {
-            RimeJni.clearRimeComposition()
+            Rime.clearRimeComposition()
         } catch (e: Exception) {
             android.util.Log.e("RimeEngine", "clear error: ${e.message}")
         }
