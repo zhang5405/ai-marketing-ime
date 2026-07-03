@@ -62,10 +62,10 @@ public class Rime {
     // ===== Output =====
 
     /** Get committed text */
-    public static native RimeProto.CommitProto getRimeCommit();
+    public static native CommitProto getRimeCommit();
 
     /** Get context (composition + candidates) */
-    public static native RimeProto.ContextProto getRimeContext();
+    public static native ContextProto getRimeContext();
 
     // ===== Candidates =====
 
