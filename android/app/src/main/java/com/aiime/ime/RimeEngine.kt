@@ -2,7 +2,8 @@ package com.aiime.ime
 
 import android.content.Context
 import com.osfans.trime.core.Rime
-import com.osfans.trime.core.RimeProto
+import com.osfans.trime.core.ContextProto
+import com.osfans.trime.core.CommitProto
 import java.io.File
 import java.io.FileOutputStream
 
