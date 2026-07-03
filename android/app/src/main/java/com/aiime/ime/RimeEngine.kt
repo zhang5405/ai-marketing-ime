@@ -107,15 +107,15 @@ class RimeEngine(private val context: Context) {
             Rime.simulateRimeKeySequence(pinyinInput)
 
             // 获取上下文（包含组合文本和候选词）
-            val context = Rime.getRimeContext()
-            val composition = context?.composition
-            val menu = context?.menu
+            val ctx = Rime.getRimeContext()
+            val comp = ctx?.composition
+            val menu = ctx?.menu
 
             // 组合文本（拼音显示）
-            val composingText = composition?.preedit ?: pinyinInput
+            val composingText = comp?.preedit ?: pinyinInput
 
             // 候选词列表
-            val candidates = menu?.candidates?.mapNotNull { it?.text } ?: emptyList()
+            val candidates = menu?.candidates?.mapNotNull { it.text } ?: emptyList()
 
             ProcessResult(composingText, candidates)
         } catch (e: Exception) {
