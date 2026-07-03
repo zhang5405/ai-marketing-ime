@@ -8,10 +8,16 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -27,7 +33,13 @@ import kotlinx.coroutines.launch
  * 2. 键盘布局 → Compose 三 Tab 布局（拼音 / 话术 / AI）
  * 3. 语音能力保留可选，但不作为默认入口
  */
-class MarketingKeyboardService : InputMethodService() {
+class MarketingKeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
+
+    private val lifecycleRegistry = LifecycleRegistry(this)
+    private val savedStateRegistryController = SavedStateRegistryController.create(this)
+
+    override val lifecycle: Lifecycle get() = lifecycleRegistry
+    override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
 
     // ==================== 输入状态 ====================
 
@@ -38,11 +50,15 @@ class MarketingKeyboardService : InputMethodService() {
 
     override fun onCreate() {
         super.onCreate()
+        savedStateRegistryController.performRestore(null)
+        lifecycleRegistry.currentState = Lifecycle.State.CREATED
+        lifecycleRegistry.currentState = Lifecycle.State.STARTED
         rimeEngine.initialize()
         keyboardViewModel.initScriptDb(applicationContext)
     }
 
     override fun onDestroy() {
+        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         super.onDestroy()
         rimeEngine.destroy()
     }
@@ -51,6 +67,8 @@ class MarketingKeyboardService : InputMethodService() {
 
     override fun onCreateInputView(): View {
         return ComposeView(this).apply {
+            setViewTreeLifecycleOwner(this@MarketingKeyboardService)
+            setViewTreeSavedStateRegistryOwner(this@MarketingKeyboardService)
             setContent {
                 val vm = keyboardViewModel
 
